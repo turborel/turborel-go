@@ -19,7 +19,7 @@ import (
 const coverageFloor = 90.0
 
 // toolPackage is the path prefix of xtask's own files in a coverage
-// profile. Its tests verify its decisions (R-TOOL-2), but it is no part
+// profile. Its tests verify its decisions (RULES.md D12), but it is no part
 // of the driver, so its statements do not count toward the floor.
 const toolPackage = "github.com/turborel/turborel-go/internal/xtask/"
 

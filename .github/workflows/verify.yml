@@ -1,6 +1,6 @@
-# Every check a change must pass (RULES.md R-PROC-1, D9), on each platform
+# Every check a change must pass (RULES.md R-PROC-1, D4), on each platform
 # the driver claims to run on and each Go release it supports (D3), plus
-# the coverage report (D10) and govulncheck. Every action is pinned by its
+# the coverage report (D7) and govulncheck. Every action is pinned by its
 # full commit SHA, its version in a comment.
 name: verify
 

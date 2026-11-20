@@ -2,7 +2,8 @@
 
 [Contents](README.md)
 
-This chapter will tell how a statement is prepared once and run many
-times with values for its `?` parameters, and how a query's rows are
-read through a cursor a batch at a time. It is written with statements,
+This chapter will tell how a program prepares a statement once, its
+parameters written `?`, and runs it many times; how it reads a query's
+rows through a cursor, in parts, several cursors of one statement at
+once; and how it describes a statement and lets it go. It is filled at
 milestone M3.

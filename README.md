@@ -5,86 +5,115 @@
     </picture>
 </p>
 
-> turborel-go is in alpha, meaning, version 0.0.0. Anything may change
-> from one build to the next, API and behaviour alike. Its version is
-> the number of the turborel release it is made for, so the alpha
-> speaks to turborel 0.0.0, over protocol version 1. See
-> [VERSIONING.md](VERSIONING.md).
+> turborel-go is in alpha, meaning, version 0.0.0. Its version is the
+> number of the Turborel release it is made for, and the alpha is made
+> for Turborel 0.0.0, which speaks protocol version 1. Anything may
+> change from one build to the next, API and behaviour alike. See
+> [VERSIONING.md](VERSIONING.md). The latest Turborel alpha is built for
+> Linux, macOS and Windows as the pre-release
+> [nightly](https://github.com/turborel/turborel/releases/tag/nightly),
+> and as the image `ghcr.io/turborel/turborel:nightly`.
 
-turborel-go is the Go driver for [turborel](https://github.com/turborel/turborel),
-a relational database system. It speaks turborel's native protocol
-itself, in Go alone, with nothing but the standard library: no cgo, no
-native library, and no other module.
+turborel-go is the Go driver for
+[Turborel](https://github.com/turborel/turborel), a relational database
+system. It connects a Go program to a Turborel server,
+`turboreld`, over Turborel's [native
+protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md),
+version 1, which it speaks itself, in Go alone, on the standard library, with no cgo.
 
-It is being built. This release holds the repository's checks and the
-codec of the protocol's frame header, and nothing a program can call
-yet. When it is done it gives:
+Its standard interface is a `database/sql` driver, registered as `turborel`, and a native API beside it, cancelled through `context`. Beneath it is a low-level
+client built to do all that Turborel's own client library,
+turborel-client, does: TCP, Unix sockets and Windows named pipes, TLS,
+SCRAM-SHA-256 and SCRAM-SHA-256-PLUS, prepared statements and cursors,
+large objects, bulk copy, import and export, settings from a URI, the
+environment and service and password files, several servers, pipelines
+and pools.
 
-- a `database/sql` driver, registered as `turborel`;
-- a native API beside it, with every feature of turborel-client,
-  turborel's reference client: TLS, SCRAM-SHA-256 and -PLUS, prepared
-  statements and cursors, large objects, copy, import and export,
-  settings by URI, service and password files, several servers,
-  pipelines and pools;
-- cancellation by `context`, sent to the server as the protocol's
-  Cancel.
-
-[CONFORMANCE.md](CONFORMANCE.md) is the checklist of each, and
-[TODO.md](TODO.md) the order they are built in.
+The driver is built in milestones, M0 to M8, and does not connect to a
+server yet. [CONFORMANCE.md](CONFORMANCE.md) shows what is done, row by
+row, and [TODO.md](TODO.md) what is open.
 
 ## Requirements
 
-Go 1.26 or later. The driver is tested on Go 1.26 and 1.27, on Linux,
-macOS and Windows (RULES.md D3).
+- Go 1.26 or later, on Linux, macOS or Windows ([RULES.md](RULES.md) D3).
+- Go 1.26 and 1.27 are tested; no module beyond the standard library.
+- A Turborel server of the same release, which speaks protocol version 1
+  ([running the server](https://github.com/turborel/turborel/blob/main/doc/operator/02-turboreld.md)).
 
 ## Installing
 
-No release is published yet. Build it from source:
+No package is published yet. The driver's package, the module `github.com/turborel/turborel-go`, goes to
+the Go module proxy, which takes the module's versions from its tags only once every Turborel driver is done, with the others
+([VERSIONING.md](VERSIONING.md#publishing)). Until then, build the
+driver from source:
 
 ```
 git clone https://github.com/turborel/turborel-go
 cd turborel-go
-go test ./...                         # the tests
-go run ./internal/xtask verify        # every check a change must pass
+go test ./...
+```
+
+A program's module then takes the clone in by a `replace` directive,
+beside a requirement of version 0.0.0:
+
+```
+go mod edit -require=github.com/turborel/turborel-go@v0.0.0 -replace=github.com/turborel/turborel-go=../turborel-go
 ```
 
 ## A first query
 
-This is what the standard API will be once it is built (milestone M7);
-none of it runs yet.
+This is what the standard API will be once milestone M7 builds it and
+M8's audit checks it. None of it runs yet, and its names may change
+until then.
 
 ```go
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/turborel/turborel-go"
 )
 
-db, err := sql.Open("turborel", "turborel://ann@db.example:7422/?tls_mode=verify-full")
-if err != nil {
-	return err
-}
-defer db.Close()
+func staffName(ctx context.Context) (string, error) {
+	db, err := sql.Open("turborel", "turborel://ann@db.example:7422/?tls_mode=verify-full")
+	if err != nil {
+		return "", err
+	}
+	defer db.Close()
 
-var name string
-err = db.QueryRowContext(ctx, "SELECT NAME FROM STAFF WHERE ID = ?", 2).Scan(&name)
+	var name string
+	err = db.QueryRowContext(ctx, "SELECT NAME FROM STAFF WHERE ID = ?", 2).Scan(&name)
+
+	return name, err
+}
 ```
 
-## Documents
+## The manual
 
-- [doc/](doc/README.md): the manuals, a User's Guide, an API Reference
-  and the Appendices, which turborel's docs site publishes too. Each
-  chapter is written as the part it describes is finished.
-- [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md):
-  the protocol it speaks.
-- [CONFORMANCE.md](CONFORMANCE.md): what is implemented of the protocol
-  and of turborel-client.
-- [RULES.md](RULES.md): how the driver is designed, written and verified.
-- [TODO.md](TODO.md): open work.
-- [VERSIONING.md](VERSIONING.md): the version, and how a release is
-  published.
-- [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md):
-  contributing, and reporting an issue or a vulnerability.
-- [LICENSE](LICENSE) and [TRADEMARK.md](TRADEMARK.md): the code is
-  under the BSD-2-Clause Plus Patent License; the name Turborel and its
-  logos are not, and TRADEMARK.md says how they may be used.
+[doc/](doc/README.md) is the manual: a User's Guide, an API Reference
+and Appendices, published on turborel.com's documentation site too. Each
+chapter is written as the milestone that fills it lands. The SQL a
+program sends, and the server, are described in Turborel's own manual,
+[The Turborel Documentation Set](https://github.com/turborel/turborel/blob/main/doc/README.md).
+[VERSIONING.md](VERSIONING.md) tells how the driver's releases are
+numbered and published.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before making a change: how a
+change is made, its commit message, pull requests and issues. Every
+change passes `go run ./internal/xtask verify`. [RULES.md](RULES.md) says how the
+driver is designed, written and verified,
+[CONFORMANCE.md](CONFORMANCE.md) is the parity matrix every Turborel
+driver keeps, and [TODO.md](TODO.md) lists open work.
+
+## Security
+
+Report a vulnerability privately, never in a public issue, as
+[SECURITY.md](SECURITY.md) says.
+
+## License and trademark
+
+The code is under the BSD-2-Clause Plus Patent License, in
+[LICENSE](LICENSE). The name Turborel and its logos are not:
+[TRADEMARK.md](TRADEMARK.md) says how they may be used.

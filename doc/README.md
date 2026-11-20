@@ -1,52 +1,69 @@
 # The turborel-go Documentation Set
 
-turborel-go is the Go driver for turborel, a relational database system.
-A Go program uses it to connect to a turborel server, `turboreld`, and to
-run SQL there, through Go's standard `database/sql` package or through
-the driver's native API. It speaks turborel's native protocol itself, in
-Go alone. This set of manuals describes the driver for those who write
-such programs.
+turborel-go is the Go driver for Turborel, a relational database
+system. It connects a Go program to a Turborel server,
+`turboreld`, over Turborel's native protocol, version 1, which it speaks
+itself, in Go alone, on the standard library, with no cgo. Its standard interface is a `database/sql` driver, registered as `turborel`, and a native API beside it, cancelled through `context`, over a
+low-level client built to do all that Turborel's own client library
+does. This set of manuals describes it for those who write programs with
+it. The SQL a program sends, and the server, are described in Turborel's
+own manuals,
+[The Turborel Documentation Set](https://github.com/turborel/turborel/blob/main/doc/README.md).
 
 turborel-go is in alpha: what these manuals describe may change in any
-release until 1.0.0 ([Versions](appendix/d-versions.md)). Each change
-updates the pages it touches, so the manuals describe the release they
-come with. The driver is being built, and a chapter is written as the
-part it describes is finished; until then it says what it will cover.
-What is implemented, feature by feature, is in
-[CONFORMANCE.md](../CONFORMANCE.md).
+release until 1.0.0 ([Versions](appendix/d-versions.md)). The driver is
+built in milestones, and until a chapter's milestone lands, the chapter
+says what it will cover. Each change updates the pages it touches, so
+the manuals describe the release they come with.
 
 ## The volumes
 
 | Volume | For | |
 |---|---|---|
-| [I. User's Guide](user/README.md) | Anyone who writes a Go program against turborel | Installing, connecting, and running SQL, chapter by chapter |
-| [II. API Reference](client/README.md) | The same, looking something up | The `database/sql` driver and the native API, a page for each part |
-| [Appendices](appendix/README.md) | Everyone | Types, errors, connection settings, versions |
+| [I. User's Guide](user/README.md) | Anyone who writes a Go program against Turborel | Installing, connecting, queries, prepared statements, transactions, large objects, copying, pipelines and pools, settings and errors, chapter by chapter |
+| [II. API Reference](client/README.md) | The same, looking something up | The standard API, then the low-level client, a page for each main interface or module |
+| [Appendices](appendix/README.md) | Everyone | Types, errors, settings and versions |
 
 Read the User's Guide from the start to learn the driver; turn to the
-API Reference and the appendices to look a thing up. SQL itself, and the
-server, are described in turborel's own manuals.
+API Reference and the appendices to look a thing up.
 
 ## Conventions
 
-**Examples** are Go, set in a fixed-width font. What an example prints
-follows it, as a comment:
-
-```go
-fmt.Println(turborel.Version)
-// 0.0.0
-```
-
-**SQL** in examples is written as turborel's manuals write it, key words
-and names in upper case:
+**Examples** of Go and of SQL are set in a fixed-width font.
+SQL key words are in upper case, names in upper case unless delimited,
+as the standard folds them, and a dynamic parameter is `?`:
 
 ```sql
-SELECT NAME, SALARY FROM STAFF WHERE SALARY > 50000;
+SELECT NAME, SALARY FROM STAFF WHERE SALARY > ?
 ```
 
-**Errors** are given by SQLSTATE, the code the SQL standard defines, and
-SQLCODE, the older number. Every failure the driver returns is a
-`*turborel.Error` that carries both ([Appendix B](appendix/b-errors.md)).
+**Results** of examples follow them, as the program prints them.
 
-**References** to turborel's manuals name the page and its volume, as
-The Native Protocol, in turborel's Volume IV, Client Reference.
+**Citations** name the section of Turborel's documents a behaviour comes
+from: [PROTOCOL Frames] is the section "Frames" of
+[The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md);
+[CLIENT Pipelines] is the section "Pipelines" of Turborel's client
+library chapters,
+[The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md)
+and
+[Settings, Pipelines and Pools](https://github.com/turborel/turborel/blob/main/doc/client/02-library-connections.md).
+The rows each page fulfils are those of the driver's parity matrix,
+[CONFORMANCE.md](https://github.com/turborel/turborel-go/blob/main/CONFORMANCE.md).
+
+**Errors** are given by SQLSTATE, the code the SQL standard defines, and
+SQLCODE, the older number, as Turborel gives them;
+[Appendix B](appendix/b-errors.md) maps them to the driver's error.
+
+### Pages of reference
+
+A page of the API Reference has these sections, in this order:
+
+- **NAME**: the interface, class, module or function, and what it does
+  in a line.
+- **SYNOPSIS**: its declaration, in Go.
+- **DESCRIPTION**: what it does.
+- **ERRORS**: each way it fails, by SQLSTATE.
+- **EXAMPLES**: programs, and what they print.
+- **STANDARD**: the sections of Turborel's documents it follows, and,
+  for the standard API, the specification of the interface.
+- **SEE ALSO**: related pages.

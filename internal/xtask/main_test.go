@@ -9,7 +9,7 @@ import (
 // TestRunRefusesUsage refuses a command line it does not take, before
 // running anything.
 //
-// Verifies: [TOOL] R-TOOL-2 xtask takes exactly one command it knows.
+// Verifies: [TOOL] R-PROC-5 xtask takes exactly one command it knows.
 func TestRunRefusesUsage(t *testing.T) {
 	t.Parallel()
 

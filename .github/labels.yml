@@ -77,7 +77,7 @@
   description: "go.mod, .golangci.yml, .gitattributes, .gitignore"
 - name: "dependencies"
   color: "#0366d6"
-  description: "A tool, an action or the Go version changes (RULES.md D3, D6, D7)"
+  description: "A tool, an action or the Go version changes (RULES.md D3, D10, D11)"
 
 # Triage
 - name: "duplicate"

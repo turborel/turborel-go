@@ -4,148 +4,147 @@ How to work on turborel-go as a coding agent, with any tool. If this file
 disagrees with [RULES.md](RULES.md) or [CONTRIBUTING.md](CONTRIBUTING.md),
 follow those.
 
-turborel-go is the Go driver for turborel, a relational database system.
-It speaks turborel's native protocol, version 1, in Go alone, and will
-give a `database/sql` driver and a native API beside it. See
+turborel-go is the Go driver for Turborel, a relational
+database system. It speaks Turborel's native protocol, version 1,
+itself, in Go alone, on the standard library, with no cgo, and is built to do all turborel-client does. See
 [README.md](README.md).
 
 ## Before you change anything
 
-Read RULES.md §3 (code), §4 (tests), §6 (process) and the §1 decisions
-for your area. Read CONTRIBUTING.md for how a change is made and the
-extra checks for changes that touch the wire.
+Read RULES.md §3 (code), §4 (tests), §6 (process) and the decisions for
+your area. Read CONTRIBUTING.md for how a change is made and the extra
+checks for changes that touch the protocol. Read the section of the
+protocol, or of the client documents, that your change implements, and
+the rows of CONFORMANCE.md it marks done.
 
 ## Build and check
 
-Every change must pass `go run ./internal/xtask verify` before it is
-handed back.
+Every change must pass `go run ./internal/xtask verify` and `go run ./internal/xtask coverage`
+before it is handed back.
 
 ```
+go run ./internal/xtask install-hooks   # run verify before each commit (once per clone)
 go run ./internal/xtask verify          # every check a change must pass
 go run ./internal/xtask coverage        # the tests, coverage and its floor alone
 go run ./internal/xtask vulncheck       # govulncheck, as CI runs it
-go run ./internal/xtask install-hooks   # run verify before every commit (once per clone)
 go test -race ./...                     # the tests alone
+go build ./...                          # the package
 ```
 
-`verify` stops at the first failure. CI runs it on Linux, macOS and
-Windows, on Go 1.26 and 1.27 (D9). The coverage floor is in
-`internal/xtask/coverage.go` and only rises (D10). golangci-lint and
-govulncheck run by `go run` at the versions `internal/xtask/verify.go`
-pins (D6), so nothing needs installing but Go.
+`go run ./internal/xtask verify` stops at the first failure (RULES.md D4). CI runs it
+on Linux, macOS and Windows, on each supported runtime, and coverage on
+Linux. The coverage floor only rises (D7, R-COV-2).
 
-Project automation is Go in `internal/xtask/`, never shell scripts (D5,
-R-TOOL-1).
+Project automation is the language's own tooling, never shell scripts
+(R-PROC-5).
 
 ## Where things are
 
 | Path | What |
 |---|---|
+| `go.mod` | the module, `github.com/turborel/turborel-go`, `go 1.26`, no requirement |
 | `doc.go` | the package's documentation |
-| `error.go` | `Error`, every failure the driver returns |
-| `frame.go` | frame headers, encoded and decoded |
-| `version.go` | `Version`, the turborel release it is made for |
-| `internal/xtask/` | the project's checks |
-| `doc/` | the manual: `user/` (Volume I), `client/` (Volume II), `appendix/` |
+| `*.go` at the root | the package `turborel`, one file or more for each layer of D1, named for its area (D9): `frame.go` of the codec, and the rest as they come |
+| `*_test.go` at the root | each file's tests, beside it, in the package itself |
+| `version.go` | `Version`, the Turborel release the driver is made for (D5) |
+| `internal/xtask/` | the checks tool (D12) |
+| `.golangci.yml` | golangci-lint's configuration (D11) |
+| `doc/` | the manual (R-DOC-7) |
+| `.github/` | CI, issue forms, the pull request template, labels, Dependabot |
+| `.githooks/pre-commit` | hands over to the checks tool (D4) |
 
-The driver is one package, `turborel` (D4): each layer is files of it,
-named by what they hold, each with its tests beside it in `_test.go`.
-
-What the driver implements comes from turborel's repository, read only:
-
-| Path in turborel | What |
-|---|---|
-| `doc/client/05-protocol.md` | The Native Protocol, the spec |
-| `doc/client/02-library.md` | The Client Library, the features to match |
-| `doc/client/02-library-connections.md` | Settings, Pipelines and Pools, the same |
-| `client/src/`, `protocol/src/` | turborel-client, the reference: where it and the spec differ, it is right |
+The protocol is Turborel's `doc/client/05-protocol.md`, the client's
+features `doc/client/02-library.md` and `02-library-connections.md`, and
+the reference code `protocol/src/` and `client/src/`, all in
+[turborel](https://github.com/turborel/turborel). Where the page and the
+code differ, the code is right; CONFORMANCE.md names each such place.
 
 ## Rules that are broken most often
 
-`verify` treats every finding as an error. RULES.md §3 and §4 have the
-full list.
+`go run ./internal/xtask verify` treats every warning as an error (R-LINT-1). RULES.md
+§3 and §4 have the full list.
 
-- Every failure is returned as an `error` whose dynamic type is
-  `*Error`, with SQLCODE and SQLSTATE (R-ERR-1). Never return a bare
-  `errors.New` or `fmt.Errorf` from the library.
-- No `panic`, `log.Fatal` or `os.Exit` in library code (R-ERR-2), and no
-  printing (R-STYLE-4).
-- No length or count from the server is used to allocate before it is
-  checked against what remains (R-ERR-4).
-- No `unsafe`, no cgo (R-SAFE-1), no import outside the standard library
-  (D7, R-SAFE-2), no global mutable state (R-SAFE-3).
-- Keep functions to 50 lines and 5 parameters, and files to 600 lines
-  (R-SIZE).
-- No magic numbers or strings; protocol tags and kinds are named
-  constants (R-CONST).
-- Exported items have doc comments beginning with their name (R-DOC-1).
-  Each file's first comment says its responsibility (R-DOC-4).
-- Comments say why (R-DOC-2). No `TODO` comments or commented-out code
-  (R-DOC-5).
+- Every failure is the driver's error, with its SQLCODE and SQLSTATE
+  (R-ERR-1, R-ERR-2). No error of the language or a library beneath it
+  reaches a program; catch it, and give the driver's, keeping the cause
+  (R-ERR-3).
+- No printing, and no ending the process, in library code (R-STYLE-3,
+  R-ERR-1).
+- Check every length or count a server sends against its bound before
+  reading or reserving for it (R-SAFE-1).
+- No secret in a log, a failure's message or an object's display form
+  (R-SAFE-4).
+- Integers of the protocol are read and written at their width,
+  little-endian; exact numbers never pass through a float (R-NUM).
+- Keep functions to 50 lines of code and 5 parameters, and files to 600
+  lines (R-SIZE).
+- No magic numbers or strings: protocol tags, kinds, capability, status
+  and mechanism names are named constants, defined once (R-CONST).
+- Every public item has a doc comment (R-DOC-1). Comments say why
+  (R-DOC-2). No `TODO` comments or commented-out code (R-DOC-5).
+- A silenced warning names its rule and says why (R-LINT-3).
+- No dependency without a decision in RULES.md (R-DEP-1).
+- Code of one platform is chosen by the platform and refused elsewhere
+  with the driver's error (R-PLAT-2).
+- No `panic`, `log.Fatal` or `os.Exit` in library code; a failure is
+  returned as an `error` whose dynamic type is `*Error` (R-ERR-1, R-GO-3).
+- No `unsafe` and no cgo (R-GO-1).
 - An exception to a linter is `//nolint:<linter> // <reason>`, one
-  linter and a reason (D6).
-- Never write a secret into an error, a log or a `String` method
-  (R-SAFE-5).
-- Code of one platform sits behind a build constraint (R-PLAT-2).
+  linter and a reason (R-LINT-3).
+- A file of one platform carries a build constraint (R-GO-2).
+- A switch on one of the driver's enumerations names every value
+  (R-GO-4).
 
 ## Tests
 
-Every test has a paragraph in its doc comment beginning `Verifies:` and a
-tag (R-TRACE-1): `[PROTOCOL <heading>]` for The Native Protocol,
-`[CLIENT <heading>]` for The Client Library or Settings, Pipelines and
-Pools, `[DESIGN] D<n>` for a decision, `[TOOL] R-<id>` for xtask's own.
+Every test cites what it verifies, by its doc comment, beginning `Verifies:`, beginning with a
+tag (R-TRACE-1, D6):
 
-```go
-// TestFrameHeaderLongestBody reads the longest body taken, and refuses
-// one byte more.
-//
-// Verifies: [PROTOCOL Frames] a body of the longest length taken is
-// read, and a longer one fails the connection with SQLCODE -919 and
-// SQLSTATE 08006.
-func TestFrameHeaderLongestBody(t *testing.T) {
-```
+- `[PROTOCOL <heading>]`, a section of 05-protocol.md, as
+  `[PROTOCOL Frames]`;
+- `[CLIENT <heading>]`, a section of 02-library.md or
+  02-library-connections.md, as `[CLIENT Pipelines]`;
+- `[DESIGN] D<n>`, a decision of RULES.md;
+- `[TOOL] R-<id>`, a rule the checks tool holds.
 
-Tests are deterministic, with no clock, randomness or network beyond
-loopback (R-TEST-3), pass under `-race`, and call `t.Parallel`
-(R-TEST-4). A fixed defect gets a failing-first regression test
-(R-TEST-5).
+The checks tool refuses a heading, decision or rule that is not there
+(R-TRACE-2). Tests are deterministic, with no clock, randomness or
+network beyond loopback (R-TEST-5). A shared fixture is written once
+(R-TEST-7). A fixed defect gets a regression test that fails without the
+fix (R-TEST-6). A live test runs its own server on its own port and data
+directory, and stops it.
 
 ## Citing the spec
 
-Cite a section by its heading exactly as the spec prints it. The headings
-`verify` accepts are in `internal/xtask/headings.go`, taken from
-turborel's main at the commit it names; a citation of any other fails.
-Never cite from memory: open the document and check. Code never cites
-TODO.md, and `verify` refuses it (R-DOC-5).
+Check every citation against the document before writing it, by its
+heading as printed. Never cite from memory. Code never cites TODO.md.
 
 ## Documents
 
 A finished feature updates these in the same change:
 
-- RULES.md, if it made a decision, including the row in §1's table
-- CONFORMANCE.md, its row marked done with its tests (R-TRACE-3)
-- TODO.md, which only holds open work
-- [doc/](doc/README.md), for anything a program sees (R-DOC-6): its User's
-  Guide chapter, its API Reference page, and an appendix row for a type,
-  an error or a setting
+- RULES.md, if it made a decision, including the row in §1's table;
+- CONFORMANCE.md, each row it implements (R-TRACE-4), marked done only
+  where its code exists and its tests pass;
+- TODO.md, which only holds open work;
+- [doc/](doc/README.md), for anything a program sees (R-DOC-7), every
+  example run: each page keeps its `# Title` and its
+  `[Contents](README.md)` line, links within `doc/` are relative `.md`
+  links, and a link out of `doc/` is a full URL, as the docs site reads
+  `doc/` alone;
+- README.md, if what the driver is or needs changes.
 
-The manual keeps turborel's layout, since turborel's docs site reads it:
-each page opens with its `# Title` and a line holding only
-`[Contents](README.md)`, links between pages are relative `.md` links,
-and a chapter not yet filled says what it will cover and its milestone.
-
-Committed documents say nothing of benchmarks or timings, and every
-claim in them matches the code.
+No document gives timings or speedups; numbers go in a commit message.
 
 ## Commits
 
 - Commit only when the maintainer asks, and never push without approval.
 - Follow CONTRIBUTING.md's form, with one logical change per commit.
-- Add no AI or agent attribution to a commit or pull request. That means
-  no `Co-Authored-By` for an agent, no "Generated with" and no
-  `Signed-off-by`.
+- Add no AI or agent attribution to a commit, a pull request, a file or
+  the package's metadata. That means no `Co-Authored-By` for an agent,
+  no "Generated with" and no `Signed-off-by`.
 - Stage with an explicit path list, `git add -- <path> ...`. Never use
   `git add -A` or `git add .` on the whole tree.
-- Never stage `LICENSE` or scratch files.
-- Code compiled for one platform only can't be verified locally on another.
-  Say so when handing it back.
+- Never stage scratch files, or a live test's data directory.
+- Code compiled for one platform only can't be verified locally on
+  another. Say so when handing it back (R-PLAT-4).

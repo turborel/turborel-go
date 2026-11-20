@@ -30,6 +30,13 @@ jobs:
           go mod verify
           go build ./...
           go list -m -json
+      - name: The module's source, as the proxy would serve it
+        run: git archive --format=zip --prefix=turborel-go/ -o turborel-go.zip HEAD
+      - name: Keep what was built
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: turborel-go
+          path: turborel-go.zip
       - name: The version tagged is Version
         id: version
         run: |

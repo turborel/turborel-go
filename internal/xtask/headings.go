@@ -1,13 +1,15 @@
 package main
 
-// The headings a test or a comment may cite (RULES.md R-TRACE-1), as
-// turborel's main branch has them at commit e4f08f77. A citation of a
+// The headings a test or a comment may cite (RULES.md D6, R-TRACE-1,
+// R-TRACE-2), every heading of the three documents, their titles among
+// them, as Turborel's main branch has them at commit e4f08f77. A citation of a
 // heading not listed fails `verify`, so none is guessed; a change to
 // the spec's headings changes these lists in the same commit.
 
 // protocolHeadings are the headings of doc/client/05-protocol.md, The
 // Native Protocol, cited as `[PROTOCOL Frames]`.
-const protocolHeadings = `Frames
+const protocolHeadings = `The Native Protocol
+Frames
 Compressed frames
 Values and fields
 Data types
@@ -56,7 +58,8 @@ A worked example`
 // Client Library, and doc/client/02-library-connections.md, Settings,
 // Pipelines and Pools, cited as `[CLIENT Pipelines]`. No heading is in
 // both.
-const clientHeadings = `Connecting
+const clientHeadings = `The Client Library
+Connecting
 Timeouts
 Running statements
 Prepared statements
@@ -78,4 +81,5 @@ Several servers
 TLS by mode
 Pipelines
 Pools
+Settings, Pipelines and Pools
 The SCRAM key cache`

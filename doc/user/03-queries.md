@@ -3,6 +3,7 @@
 [Contents](README.md)
 
 This chapter will tell how a program runs a statement and reads its
-rows, through `database/sql` and through the native API, and how the
-values of each SQL type arrive as Go values. It is written with
-statements, milestone M3.
+rows, a batch at a time as they come, with the columns' types and the
+values the driver gives for each, and what a statement's completion
+tells: the rows it changed, the values it generated, the server's time.
+It is filled at milestone M3.

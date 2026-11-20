@@ -1,4 +1,4 @@
-# golangci-lint v2, strict (RULES.md D6, R-STYLE-2). Every linter is on
+# golangci-lint v2, strict (RULES.md D11, R-LINT-2). Every linter is on
 # but those listed under `disable`, each with its reason. A finding is an
 # error: there is no baseline, and `max-issues-per-linter` and
 # `max-same-issues` are 0, so none is hidden.
@@ -26,13 +26,13 @@ linters:
     - wsl
     - wsl_v5
     - nlreturn
-    # The codec's unexported functions are tested from inside the package (R-TEST-1).
+    # The codec's unexported functions are tested from inside the package (R-TEST-1, RULES.md D13).
     - testpackage
     # `if err := f(); err != nil` is the Go idiom for an error used once.
     - noinlineerr
 
   settings:
-    # R-SAFE-4: no module but the standard library and this one.
+    # R-DEP-1, D10: no module but the standard library and this one.
     depguard:
       rules:
         main:
@@ -40,11 +40,11 @@ linters:
           allow:
             - $gostd
             - github.com/turborel/turborel-go
-          # R-SAFE-1: no unsafe code.
+          # R-GO-1: no unsafe code.
           deny:
             - pkg: unsafe
-              desc: "R-SAFE-1: no unsafe code"
-    # R-STYLE-4, R-ERR-2: library code neither prints, panics nor exits.
+              desc: "R-GO-1: no unsafe code"
+    # R-STYLE-3, R-ERR-1: library code neither prints, panics nor exits.
     forbidigo:
       forbid:
         - pattern: ^(fmt\.Print(|f|ln)|print|println)$
@@ -56,7 +56,7 @@ linters:
       lines: 50
       statements: -1
       ignore-comments: true
-    # R-CF-2: cognitive and cyclomatic complexity at most 15, nesting at most 5.
+    # R-SIZE-5: cognitive and cyclomatic complexity at most 15, nesting at most 5.
     gocognit:
       min-complexity: 15
     gocyclo:
@@ -65,13 +65,13 @@ linters:
       max-complexity: 15
     nestif:
       min-complexity: 5
-    # R-CF-3: a switch on an enum names every value; a default does not stand for them.
+    # R-GO-4: a switch on an enum names every value; a default does not stand for them.
     exhaustive:
       default-signifies-exhaustive: false
     # R-DOC-5: no TODO or FIXME comments.
     godox:
       keywords: [TODO, FIXME, XXX, BUG, HACK]
-    # R-DEV-1: every nolint names its linter and says why.
+    # R-LINT-3: every nolint names its linter and says why.
     nolintlint:
       require-explanation: true
       require-specific: true
@@ -91,7 +91,7 @@ linters:
             - max: 600
               skipComments: false
               skipBlankLines: false
-        # R-CF-2: nesting at most 5.
+        # R-SIZE-5: nesting at most 5.
         - name: max-control-nesting
           arguments: [5]
         # R-DOC-1: every exported item documented, in Go's form.
@@ -114,7 +114,7 @@ linters:
     presets: []
     rules:
       # xtask is a tool that runs the go command, prints its steps and
-      # exits with their status (R-TOOL-2): that is its work.
+      # exits with their status (RULES.md D12, R-PROC-5): that is its work.
       - path: internal/xtask/
         linters: [forbidigo]
       - path: internal/xtask/

@@ -14,7 +14,7 @@ import (
 )
 
 // The tools xtask runs by module path and version, pinned so that every
-// machine runs the same (RULES.md D6). `go run` builds each once and
+// machine runs the same (RULES.md D11). `go run` builds each once and
 // keeps it in the build cache.
 const (
 	golangciLintModule = "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0"
@@ -39,6 +39,7 @@ func verify(out io.Writer) error {
 			return step(w, "golangci-lint", "go", "run", golangciLintModule, "run", "./...")
 		},
 		citations,
+		manual,
 		coverage,
 	}
 	for _, check := range checks {

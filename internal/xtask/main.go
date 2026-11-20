@@ -1,5 +1,5 @@
 // Command xtask runs the driver's checks, as `go run ./internal/xtask
-// <command>`, the same on Linux, macOS and Windows (RULES.md D5). It is
+// <command>`, the same on Linux, macOS and Windows (RULES.md D12). It is
 // Go, never a shell script, so every platform runs one program.
 //
 // Its commands:

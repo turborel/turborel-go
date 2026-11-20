@@ -1,5 +1,5 @@
 # Dependabot keeps the Go module's requirements and the workflows' actions
-# up to date (RULES.md D6, D7). The module has no requirement yet; the
+# up to date (RULES.md D10, D11). The module has no requirement yet; the
 # entry is here so one added is watched from the start. Pinned tools run
 # by `go run` are named in internal/xtask/verify.go and raised by hand.
 version: 2

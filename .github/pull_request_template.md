@@ -39,8 +39,8 @@ claimed". -->
 ## Checklist (RULES.md §6)
 
 - [ ] One logical change per commit, each passing `go run ./internal/xtask verify`
-- [ ] The spec cited in the code (R-DOC-3) and in the tests (`Verifies:`, R-TRACE-1)
-- [ ] Normal and robustness tests (R-TEST-2), a failing-first test for a fix (R-TEST-5)
-- [ ] Every failure an `*Error` (R-ERR-1), no server length trusted (R-ERR-4), no secret disclosed (R-SAFE-5)
-- [ ] No `unsafe`, no panics, no new dependency without a decision (R-SAFE-1, R-ERR-2, D7)
+- [ ] The spec cited in the code (R-DOC-4) and in the tests (`Verifies:`, R-TRACE-1)
+- [ ] Normal and robustness tests (R-TEST-2), a failing-first test for a fix (R-TEST-6)
+- [ ] Every failure an `*Error` (R-ERR-1), no server length trusted (R-SAFE-1), no secret disclosed (R-SAFE-4)
+- [ ] No `unsafe`, no panics, no new dependency without a decision (R-GO-1, R-ERR-1, R-DEP-1)
 - [ ] CONFORMANCE.md, RULES.md, TODO.md and `doc/` updated where they change
