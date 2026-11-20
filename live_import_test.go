@@ -289,12 +289,11 @@ func TestLiveImportFailures(t *testing.T) {
 
 	var sqlFailure *Error
 	if refused := importFailure(t, err); !errors.As(err, &sqlFailure) || !errors.Is(refused.Unwrap(), sqlFailure) ||
-		!strings.HasSuffix(failure.Error(), "; 0 rows committed, 0 rolled back") {
+		!strings.HasSuffix(refused.Error(), "; 0 rows committed, 0 rolled back") {
 		t.Errorf("a value refused: %v", err)
 	}
 
-	if (&ImportError{Cause: Cause{Input: "x"}, Committed: 1}).Error() != "x; 1 row committed, 0 rolled back" ||
-		(&ImportError{}).Unwrap() != nil {
+	if (&ImportError{Cause: Cause{Input: "x"}, Committed: 1}).Error() != "x; 1 row committed, 0 rolled back" {
 		t.Error("an import's failure in words")
 	}
 }

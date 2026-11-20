@@ -247,7 +247,7 @@ func TestJSONNesting(t *testing.T) {
 	}
 
 	_, err := NewJSON(JSONObject{{Key: "k", Value: item}})
-	assertInvalidJSON(t, err)
+	assertFailure(t, err, sqlcodeBeyond, sqlstateFeatureNotSupported, "arrays and objects nest too deep")
 }
 
 // TestJSONZeroValue sends the zero value as the SQL/JSON null.
@@ -338,5 +338,5 @@ func TestJSONSpecExample(t *testing.T) {
 
 	part := Char(strings.Repeat("j", 64<<20))
 	_, err = NewJSON(JSONArray{part, part, part, part, part})
-	assertState(t, err, sqlstateInvalidJSON)
+	assertFailure(t, err, sqlcodeBeyond, sqlstateFeatureNotSupported, "its stored form is longer than 256 MiB")
 }

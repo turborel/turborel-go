@@ -116,10 +116,12 @@ a Complete.
 |---|---|
 | 23000, 22001, ... | A row a copy refuses, at `Finish`: its Diagnostics' detail names the row, as `row 7 of the copy` |
 | 08006 | SQLCODE -919: copy not granted; an export of no query, or whose write fails; input that is not native rows |
+| TB910 | SQLCODE -910: a row sent to a copy ended, or a copy finished twice; a delimiter that is not one ASCII character other than a quote or a line break |
 
 An import's failure is an `*ImportError`: where its record began, if
 `Placed`; its `Cause`, the source's text or SQL's `*Error`, its position
-dropped, which `Unwrap` gives; the rows committed, and those of the
+dropped; `Unwrap` gives SQL's, or of the source's text an `*Error` of
+SQLCODE -301 and SQLSTATE 22000; the rows committed, and those of the
 batch rolled back. A source's failure is a `*SourceError`, its message
 as turborel-client gives it, as `[DESIGN] the record is longer than
-1024 bytes`.
+1024 bytes`, which `Unwrap` gives as an `*Error` of SQLSTATE 22000.

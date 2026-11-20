@@ -56,5 +56,6 @@ An interval's `Qualifier` has a `String` that writes it as SQL does, as
 | SQLSTATE | When |
 |---|---|
 | 22003 | `NewDecimal` or `NewInterval` of units outside a signed 128-bit integer; `NewDecFloat` out of DECFLOAT's range; `ParseUUID` of text that is no UUID |
-| 22032 | `NewJSON` of an item nested deeper than 128, or `JSONOf` of octets that are not a stored JSON value |
+| 22032 | `JSONOf` of octets that are not a stored JSON value |
+| 0A000 | SQLCODE -900: `NewJSON` of an item nested deeper than 128, or stored in more than 256 MiB |
 | 08006 | A reply holding a value that is malformed, SQLCODE -919: the connection fails |

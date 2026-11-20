@@ -69,7 +69,7 @@ func TestTargetsRefused(t *testing.T) {
 	t.Cleanup(func() { _ = listener.Close() })
 
 	_, err = ConnectTo(context.Background(), TLS(address, "localhost", nil), "ANN", Trust{}, nil)
-	assertBroken(t, err, "needs a TLS configuration")
+	assertFailure(t, err, sqlcodeMisuse, sqlstateMisuse, "needs a TLS configuration")
 
 	config, err := Trusting(writePEM(t, "ca.pem", testCertificatePEM(t)))
 	if err != nil {

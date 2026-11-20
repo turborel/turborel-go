@@ -69,8 +69,10 @@ its source type. Types and values nest at most 16 deep.
 `NewDecimal`, `NewDecFloat` and `NewInterval` refuse a number the
 protocol cannot carry with an `*Error` of SQLSTATE 22003; `NewDecFloat`
 first rounds a coefficient of more than 34 digits half to even, as
-Turborel's DecFloat::new does. `NewJSON` and `JSONOf` refuse a JSON
-value that is not one with SQLSTATE 22032.
+Turborel's DecFloat::new does. `JSONOf` refuses a JSON value that is
+not one with SQLSTATE 22032, and `NewJSON` one past Turborel's limits,
+nested deeper than 128 or stored in more than 256 MiB, with SQLCODE
+-900, SQLSTATE 0A000.
 
 ## JSON items
 

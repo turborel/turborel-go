@@ -114,7 +114,7 @@ func (t Target) open(ctx context.Context, within time.Duration) (stream, *TLSCha
 
 		return c, nil, err
 	default:
-		return nil, nil, broken("a target of no kind")
+		return nil, nil, misused("a target of no kind")
 	}
 }
 
@@ -129,7 +129,7 @@ func (t Target) openTLS(ctx context.Context, within time.Duration) (stream, *TLS
 	if t.config == nil {
 		_ = c.Close() // The missing configuration is the failure given.
 
-		return nil, nil, broken("a TLS target needs a TLS configuration")
+		return nil, nil, misused("a TLS target needs a TLS configuration")
 	}
 
 	_ = c.SetDeadline(deadlineOf(within)) // A TCP connection takes a deadline; the handshake is bounded by it.

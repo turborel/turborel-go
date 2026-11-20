@@ -12,14 +12,21 @@ import (
 // message gives, SQLCODE -919 and SQLSTATE 08006, saying why.
 func assertBroken(t *testing.T, err error, why string) {
 	t.Helper()
+	assertFailure(t, err, sqlcodeConnection, sqlstateConnectionFailure, why)
+}
+
+// assertFailure checks that err is the driver's failure of sqlcode and
+// sqlstate, its message saying why.
+func assertFailure(t *testing.T, err error, sqlcode int32, sqlstate, why string) {
+	t.Helper()
 
 	var failure *Error
 	if !errors.As(err, &failure) {
 		t.Fatalf("err = %v, want an *Error", err)
 	}
 
-	if failure.SQLCode != sqlcodeConnection || failure.SQLState != sqlstateConnectionFailure {
-		t.Errorf("failure %q, want SQLCODE -919 and SQLSTATE 08006", failure)
+	if failure.SQLCode != sqlcode || failure.SQLState != sqlstate {
+		t.Errorf("failure %q, want SQLCODE %d and SQLSTATE %s", failure, sqlcode, sqlstate)
 	}
 
 	if !strings.Contains(failure.Message, why) {

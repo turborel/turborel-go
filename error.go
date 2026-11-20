@@ -29,6 +29,18 @@ const (
 	// sqlstateInvalidJSON is the SQLSTATE of a JSON value that is not
 	// one: class 22, data exception, subclass 032.
 	sqlstateInvalidJSON = "22032"
+	// sqlstateDataException is the SQLSTATE of input that cannot be read:
+	// class 22, data exception.
+	sqlstateDataException = "22000"
+	// sqlcodeMisuse and sqlstateMisuse are of the program's misuse of the
+	// driver that turborel-client has no case of, as turborel's API
+	// failure.
+	sqlcodeMisuse  int32 = -910
+	sqlstateMisuse       = "TB910"
+	// sqlcodeBeyond and sqlstateFeatureNotSupported are of what is past
+	// turborel's limits: class 0A, feature not supported.
+	sqlcodeBeyond               int32 = -900
+	sqlstateFeatureNotSupported       = "0A000"
 )
 
 // Error is every failure the driver returns: one the server sent, or one
@@ -129,6 +141,16 @@ func broken(message string) *Error {
 // SQLSTATE 22003.
 func outOfRange(message string) *Error {
 	return &Error{SQLCode: sqlcodeData, SQLState: sqlstateOutOfRange, Message: message}
+}
+
+// misused is the program's misuse of the driver, SQLSTATE TB910.
+func misused(message string) *Error {
+	return &Error{SQLCode: sqlcodeMisuse, SQLState: sqlstateMisuse, Message: message}
+}
+
+// beyond is what is past turborel's limits, SQLSTATE 0A000.
+func beyond(message string) *Error {
+	return &Error{SQLCode: sqlcodeBeyond, SQLState: sqlstateFeatureNotSupported, Message: message}
 }
 
 // invalidJSON is a JSON value a program gave that is not one, SQLSTATE

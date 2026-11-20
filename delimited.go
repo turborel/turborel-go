@@ -45,10 +45,6 @@ const (
 // byteOrderMark is UTF-8's byte order mark.
 func byteOrderMark() []byte { return []byte{0xEF, 0xBB, 0xBF} }
 
-// errDelimiter is a delimiter that is not one ASCII character, or is a
-// quote or a line break.
-var errDelimiter = errors.New("[DESIGN] a delimiter is one ASCII character, not a quote or a line break")
-
 // Dialect says how delimited text is written: its delimiter, whether a
 // field may be quoted, whether a header record comes first, its text for
 // null, and its longest record.
@@ -79,7 +75,7 @@ func TSV() Dialect {
 // other than a quote or a line break.
 func (d Dialect) WithDelimiter(delimiter rune) (Dialect, error) {
 	if delimiter > maxASCII || delimiter == quoteByte || delimiter == cr || delimiter == lf {
-		return d, fmt.Errorf("%w: %q", errDelimiter, delimiter)
+		return d, misused(fmt.Sprintf("a delimiter is one ASCII character, not a quote or a line break: %q", delimiter))
 	}
 
 	d.delimiter = byte(delimiter) //nolint:gosec // G115: checked above to be ASCII.

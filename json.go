@@ -30,6 +30,9 @@ import (
 const (
 	// jsonVersion is a document's first octet.
 	jsonVersion byte = 1
+	// jsonBeyond begins the message of a JSON value past turborel's limits,
+	// as turborel's.
+	jsonBeyond = "the SQL/JSON item is beyond turborel's limits: "
 	// maxJSONNesting is how deep arrays and objects nest, turborel's
 	// MAX_NESTING.
 	maxJSONNesting = 128
@@ -88,9 +91,9 @@ type JSONMember struct {
 // key may come more than once.
 type JSONObject []JSONMember
 
-// NewJSON is the JSON value of item. It fails, as an [*Error] of
-// SQLSTATE 22032, if arrays and objects nest deeper than 128, or the
-// stored form would be longer than 256 MiB.
+// NewJSON is the JSON value of item. It fails, as an [*Error] of SQLCODE
+// -900 and SQLSTATE 0A000, past turborel's limits: if arrays and objects
+// nest deeper than 128, or the stored form would be longer than 256 MiB.
 func NewJSON(item JSONItem) (JSON, error) {
 	w := &writer{buf: []byte{jsonVersion}}
 	if err := item.encodeJSON(w, 0); err != nil {
@@ -98,7 +101,7 @@ func NewJSON(item JSONItem) (JSON, error) {
 	}
 
 	if len(w.buf) > maxJSONOctets {
-		return JSON{}, invalidJSON("its stored form is longer than 256 MiB")
+		return JSON{}, beyond(jsonBeyond + "its stored form is longer than 256 MiB")
 	}
 
 	return JSON{doc: w.buf}, nil
@@ -150,7 +153,7 @@ func (j JSON) encodeValue(w *writer) {
 // deeper fails past maxJSONNesting.
 func deeper(depth int) error {
 	if depth > maxJSONNesting {
-		return invalidJSON("arrays and objects nest too deep")
+		return beyond(jsonBeyond + "arrays and objects nest too deep")
 	}
 
 	return nil

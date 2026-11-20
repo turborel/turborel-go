@@ -66,6 +66,11 @@ type SourceError struct {
 
 func (e *SourceError) Error() string { return e.Position.String() + ": " + e.Message }
 
+// Unwrap gives the failure as the driver's: SQLCODE -301, SQLSTATE 22000.
+func (e *SourceError) Unwrap() error {
+	return &Error{SQLCode: sqlcodeData, SQLState: sqlstateDataException, Message: e.Message}
+}
+
 // Source is where rows to import come from. Headings is asked once,
 // before the first record; then Record until it gives none. A source
 // holds no more than a record at a time, however long it is. A failure
@@ -160,13 +165,14 @@ func (e *ImportError) Error() string {
 	return fmt.Sprintf("%s%s; %s committed, %d rolled back", text, e.Cause, rowsText(e.Committed), e.RolledBack)
 }
 
-// Unwrap gives SQL's failure that stopped the import, if SQL's.
+// Unwrap gives the driver's failure the import stopped for: SQL's, or of
+// the source's input, SQLCODE -301 and SQLSTATE 22000.
 func (e *ImportError) Unwrap() error {
-	if e.Cause.SQL == nil {
-		return nil
+	if e.Cause.SQL != nil {
+		return e.Cause.SQL
 	}
 
-	return e.Cause.SQL
+	return &Error{SQLCode: sqlcodeData, SQLState: sqlstateDataException, Message: e.Cause.Input}
 }
 
 // before is an import that stopped before its first row, for cause.

@@ -369,9 +369,13 @@ func TestImportWords(t *testing.T) {
 	}
 
 	if stopped.Error() != "record 7, line 9: SQLCODE -201 (SQLSTATE 23000): refused; 1 row committed, 2 rolled back" ||
-		!errors.Is(stopped, cause.SQL) || (&ImportError{}).Unwrap() != nil {
+		!errors.Is(stopped, cause.SQL) {
 		t.Errorf("an import's failure: %v", stopped)
 	}
+
+	input := &ImportError{Cause: Cause{Input: "short"}}
+	assertFailure(t, input, sqlcodeData, sqlstateDataException, "short")
+	assertFailure(t, &SourceError{Message: "gone"}, sqlcodeData, sqlstateDataException, "gone")
 
 	if how := ImportInto("T"); how != (Import{Table: "T", Batch: DefaultBatch}) {
 		t.Errorf("ImportInto gave %+v", how)

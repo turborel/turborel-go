@@ -305,9 +305,7 @@ func TestDelimiters(t *testing.T) {
 	assertFields(t, "a|b\tc", pipe, [][]got{{f("a"), f("b\tc")}})
 
 	for _, wrong := range []rune{'"', '\n', '\r', 'é'} {
-		if _, err := CSV().WithDelimiter(wrong); err == nil ||
-			!strings.HasPrefix(err.Error(), "[DESIGN] a delimiter is one ASCII character") {
-			t.Errorf("%q: %v", wrong, err)
-		}
+		_, err := CSV().WithDelimiter(wrong)
+		assertFailure(t, err, sqlcodeMisuse, sqlstateMisuse, "a delimiter is one ASCII character")
 	}
 }

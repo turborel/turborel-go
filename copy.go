@@ -81,7 +81,7 @@ func (c *Conn) CopyRows(ctx context.Context, table string, columns []string, row
 // row the server refuses fails Finish.
 func (k *Copy) Send(row Row) error {
 	if k.ended {
-		return broken("the copy has ended")
+		return misused("the copy has ended")
 	}
 
 	encodeValues(&k.rows, row)
@@ -99,7 +99,7 @@ func (k *Copy) Send(row Row) error {
 // detail naming the row, as "row 7 of the copy".
 func (k *Copy) Finish() (uint64, error) {
 	if k.ended {
-		return 0, broken("the copy has ended")
+		return 0, misused("the copy has ended")
 	}
 
 	if err := k.flush(); err != nil {

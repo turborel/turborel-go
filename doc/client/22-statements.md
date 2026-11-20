@@ -109,4 +109,5 @@ the connection lost.
 | 26000 | A statement deallocated, or of no such number |
 | 40002 | A commit, of autocommit, that failed |
 | TB920 | SQLCODE -920: the statement was cancelled |
+| 0A000 | SQLCODE -900: query attributes past the bounds a server takes |
 | 08006 | SQLCODE -919: a capability not granted, a reply out of its place, or the connection lost |

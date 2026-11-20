@@ -37,6 +37,6 @@ func TestAttributesBounded(t *testing.T) {
 			continue
 		}
 
-		assertBroken(t, err, "attribute")
+		assertFailure(t, err, sqlcodeBeyond, sqlstateFeatureNotSupported, "attribute")
 	}
 }
