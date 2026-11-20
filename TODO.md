@@ -9,34 +9,17 @@ in [RULES.md](RULES.md).
 
 Code never cites this file (R-DOC-5).
 
-[M3 Statements](#m3-statements) ·
 [M4 Large objects and bulk](#m4-large-objects-and-bulk) ·
 [M5 Settings](#m5-settings) · [M6 Throughput](#m6-throughput) ·
 [M7 Standard API](#m7-standard-api) · [M8 Parity audit](#m8-parity-audit)
 
 ---
 
-## M3 Statements
-
-- Queries and prepared statements: P-REQ-2, P-QUERY-2 to P-QUERY-6,
-  P-EXEC-2 to P-EXEC-4, the P-PREP, P-FETCH, P-CLOSE, P-DEALLOC and
-  P-DESC rows, the C-RUN rows but C-RUN-6, and the C-PREP rows.
-- Completions, failures, notices and conditions: P-COMPL-2 to
-  P-COMPL-6, the P-ERRN rows but P-ERRN-6, and C-TOLD-2 to C-TOLD-9.
-- The session: P-PING-1, the P-RESET and P-CHUSER rows, and the C-CTRL
-  rows.
-- Capabilities: P-CAP-1, P-CAP-3 to P-CAP-9, P-CAP-11, P-CAP-13 and
-  P-CAP-15 to P-CAP-18.
-- XML and UUID values: the C-XML and C-UUID rows.
-- Conversations: P-CONV-1 to P-CONV-3 and P-CONV-6.
-- The manual: the chapters Running Queries, Prepared Statements,
-  Transactions and Errors and Diagnostics; the pages of statements and
-  errors; Appendix B.
-
 ## M4 Large objects and bulk
 
 - Large objects: P-VAL-102, P-VAL-103, the P-LOB rows, and the C-LOB
   rows.
+- Ping during a copy: P-PING-1, done once a copy can be under way.
 - Copy: P-CAP-14, P-COPYIN-2, the P-COPYEND rows, P-CONV-4, P-CONV-5,
   and the C-COPY rows.
 - Import and export: the C-IMPORT rows.

@@ -50,6 +50,11 @@ type Conn struct {
 	compressFrom  int
 	compressing   bool
 	active        bool
+	autocommit    bool
+	last          *Completion
+	position      *uint64
+	attributes    []Attribute
+	nextStatement uint32
 	lost          *Error
 }
 

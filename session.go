@@ -94,6 +94,13 @@ func (c *Conn) noted(rep reply) reply {
 	switch r := rep.(type) {
 	case completeReply:
 		c.active = r.completion.Active
+		done := r.completion
+		c.last = &done
+
+		if done.Committed {
+			position := done.Position
+			c.position = &position
+		}
 	case errorReply:
 		c.active = r.failure.Active
 		_ = c.failed(r.failure) // The failure is given with its reply; failed notes whether it lost the connection.
