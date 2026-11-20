@@ -8,8 +8,8 @@
 //
 //   - a database/sql driver registered as "turborel", so a program
 //     opens a server with sql.Open("turborel", "turborel://...");
-//   - a native API beside it, as pgx gives for PostgreSQL, with every
-//     feature of turborel-client, turborel's reference client in Rust.
+//   - a native API beside it, with every feature of turborel-client,
+//     turborel's reference client in Rust.
 //
 // A context canceled while a statement runs cancels it on the server,
 // by the protocol's Cancel request (RULES.md D2).

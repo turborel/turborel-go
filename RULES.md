@@ -308,8 +308,8 @@ M8's audit; until then its names may change.
 
 The standard interface is a `database/sql/driver` driver, registered
 under the name `turborel`, so a program opens a server with
-`sql.Open("turborel", "turborel://...")`. Beside it, as pgx does for
-PostgreSQL, the native API gives what `database/sql` has no place for. A
+`sql.Open("turborel", "turborel://...")`. Beside it, the native API
+gives what `database/sql` has no place for. A
 `context.Context` canceled while a statement runs cancels it on the
 server, by the protocol's Cancel on a connection of its own, and the
 call's failure has the context's error as its cause, so
@@ -452,8 +452,8 @@ rule, so all behave alike; each is a departure from that client:
 The module `github.com/turborel/turborel-go` is the package `turborel`:
 its codec, transport, authentication, session and APIs are files of that
 one package, the codec's unexported. So every failure is the one `*Error`
-type without an import cycle, and a program imports one path, as it does
-for lib/pq and go-sql-driver/mysql. Files stay small by R-SIZE-2 and are
+type without an import cycle, and a program imports one path. Files stay
+small by R-SIZE-2 and are
 named for their area, as CONTRIBUTING.md's commit areas are, so the
 globs of `.github/labeler.yml` label a pull request by the areas it
 touches. `internal/` holds only the checks tool.
