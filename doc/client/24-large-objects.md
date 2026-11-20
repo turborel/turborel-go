@@ -42,7 +42,9 @@ reads the value whole a chunk at a time, `io.EOF` at its length.
 appends of at most `LOBChunkOctets`, once that much waits, on `Flush`
 and on `Finish`, which gives the `Locator`, its lengths counted as
 written, a CLOB's characters counted once each though split between
-writes. `FreeLOB` and `HoldLOB` send a Lob free and hold.
+writes. The server checks a CLOB's octets as UTF-8 as each append
+comes, a character split between appends taken; the driver does not
+check them itself. `FreeLOB` and `HoldLOB` send a Lob free and hold.
 
 A reader's and a writer's requests are cancelled on the server as the
 context they were made with is done.
@@ -52,7 +54,7 @@ context they were made with is done.
 | SQLSTATE | When |
 |---|---|
 | 0F001 | A locator that is not valid: freed, or its transaction ended |
-| 22021 | An append of a CLOB whose octets are not UTF-8 |
+| 22021 | An append of a CLOB whose octets are not UTF-8, checked as each append comes, or any append after one refused; the use of such a CLOB, or of one that ends within a character |
 | 22001 | An append that makes the value longer than the longest |
 | 08006 | SQLCODE -919: a reply of the wrong kind, or none |
 

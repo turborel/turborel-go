@@ -201,3 +201,58 @@ func TestLiveLocatorLifetime(t *testing.T) {
 		t.Errorf("a held locator past the commit gave %q, %v", got, err)
 	}
 }
+
+// TestLiveCLOBNotUTF8 has the server check a CLOB's octets as each
+// append comes.
+//
+// Verifies: [PROTOCOL Lob 'L'] a character large object's octets are
+// checked as UTF-8 as each Append comes: one that is not is refused
+// (SQLSTATE 22021) by its Append, and after it every Append and the
+// value's use; one ending within a character is refused, 22021, where it
+// is used; the connection kept [CLIENT Large objects].
+func TestLiveCLOBNotUTF8(t *testing.T) {
+	t.Parallel()
+
+	c := liveSchema(t, "UTF8_TEST")
+	mustRun(t, c, "CREATE TABLE UTF8_TEST.DOCS (ID INT, BODY CLOB(1M))")
+
+	ctx := context.Background()
+
+	insert, err := c.Prepare(ctx, "INSERT INTO UTF8_TEST.DOCS VALUES (1, ?)")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w, err := c.CreateLOB(ctx, CharacterLOB)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i, piece := range [][]byte{[]byte("ab"), {0xFF}, []byte("c")} {
+		if _, err := w.Write(piece); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := w.Flush(); i == 0 && err != nil {
+			t.Fatal(err)
+		} else if i > 0 {
+			assertState(t, err, "22021")
+		}
+	}
+
+	refused, err := w.Finish()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = c.Execute(ctx, insert, []Value{refused})
+	assertState(t, err, "22021")
+
+	half := writeLOB(t, c, CharacterLOB, []byte("a\xC3"), 2)
+	_, err = c.Execute(ctx, insert, []Value{half})
+	assertState(t, err, "22021")
+
+	if c.IsLost() {
+		t.Error("a CLOB not UTF-8 lost the connection")
+	}
+}

@@ -369,7 +369,7 @@ they follow Turborel's RULES.md D89 and `src/json/binary.rs`.
 |---|---|---|---|
 | P-LOB-1 | 0 read: locator, from, count, characters flag; answered by a Lob reply of data | `[PROTOCOL Lob 'L']` | done |
 | P-LOB-2 | 1 create: kind; answered by a Lob reply of a locator | `[PROTOCOL Lob 'L']` | done |
-| P-LOB-3 | 2 append: locator, bytes, a character free to split between appends; answered by Complete | `[PROTOCOL Lob 'L']` | done |
+| P-LOB-3 | 2 append: locator, bytes, a character free to split between appends; answered by Complete. A character LOB's octets checked as UTF-8 as each Append comes: one that is not refused with 22021 by its Append, every later Append and its use refused; one ending within a character refused, 22021, where used | `[PROTOCOL Lob 'L']` | done |
 | P-LOB-4 | 3 free: locator; answered by Complete | `[PROTOCOL Lob 'L']` | done |
 | P-LOB-5 | 4 hold: locator, kept past its transaction's commit; answered by Complete | `[PROTOCOL Lob 'L']` | done |
 
@@ -516,10 +516,10 @@ they follow Turborel's RULES.md D89 and `src/json/binary.rs`.
 | P-STATUS-5 | READ_ONLY, YES or NO | `[PROTOCOL Status 'T']` | done |
 | P-STATUS-6 | SERVER_VERSION | `[PROTOCOL Status 'T']` | done |
 | P-STATUS-7 | SERVER_READ_ONLY, YES or NO (gap G2) | `[PROTOCOL Status 'T']` | done |
-| P-STATUS-8 | CATALOG (gap G2) | `[PROTOCOL Status 'T']` | done |
+| P-STATUS-8 | CATALOG, the catalog's name, an identifier of 1 to 128 characters, never empty (gap G2) | `[PROTOCOL Status 'T']` | done |
 | P-STATUS-9 | OWNER, YES or NO (gap G2) | `[PROTOCOL Status 'T']` | done |
 | P-STATUS-10 | Every setting a session may set for itself, SESSION.TIME_ZONE and TRANSACTION.ISOLATION among them | `[PROTOCOL Status 'T']` | done |
-| P-STATUS-11 | At login before Ready, and after Reset or ChangeUser before the reply that ends it, one of each name in the page's table, in its order, then the session's own settings; after a statement only what it changed, before its completion; CATALOG empty if null | `[PROTOCOL Status 'T']` | done |
+| P-STATUS-11 | At login before Ready, and after Reset or ChangeUser before the reply that ends it, one of each name in the page's table, in its order, then the session's own settings; after a statement only what it changed, before its completion | `[PROTOCOL Status 'T']` | done |
 
 ### Pong 'G'
 

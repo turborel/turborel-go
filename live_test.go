@@ -319,7 +319,8 @@ func TestLiveKeyCache(t *testing.T) {
 //
 // Verifies: [PROTOCOL Status 'T'] with status the server tells, as the
 // session begins, AUTHORIZATION, SCHEMA, READ_ONLY, SERVER_VERSION,
-// SERVER_READ_ONLY, CATALOG and OWNER (gap G2) and every setting a
+// SERVER_READ_ONLY, CATALOG, the catalog's name and never empty, and
+// OWNER (gap G2) and every setting a
 // session may set, SESSION.TIME_ZONE and TRANSACTION.ISOLATION among
 // them; and after a statement each setting it changed, each given with
 // no round trip [CLIENT What the server tells]. The capability status

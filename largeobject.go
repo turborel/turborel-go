@@ -165,7 +165,9 @@ func (r *LOBReader) Read(out []byte) (int, error) {
 // LOBWriter writes a new large object a piece at a time, sent in appends
 // of at most a chunk [PROTOCOL Lob 'L'], as an [io.Writer]. A character
 // large object's octets are UTF-8, a character free to be split between
-// writes.
+// writes; the server checks them as each append comes, and refuses the
+// first that is not UTF-8, and every append after it, as turborel-client
+// leaves it to.
 type LOBWriter struct {
 	conn    *Conn
 	ctx     context.Context //nolint:containedctx // A writer's Write takes no context, so it keeps its maker's.
@@ -234,8 +236,11 @@ func (w *LOBWriter) Flush() error {
 
 // Finish sends what is not yet sent and gives the large object, to send
 // as a parameter by its locator. The server refuses an append of a
-// character large object whose octets are not UTF-8 (SQLSTATE 22021), or
-// that makes it longer than the longest (22001).
+// character large object whose octets are not UTF-8, checked across the
+// pieces sent, or after one refused (SQLSTATE 22021), or that makes it
+// longer than the longest (22001). A character one that ends within a
+// character is refused, 22021, where it is used, as the server cannot
+// know a piece is the last.
 func (w *LOBWriter) Finish() (Locator, error) {
 	if err := w.Flush(); err != nil {
 		return Locator{}, err

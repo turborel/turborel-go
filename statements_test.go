@@ -407,18 +407,18 @@ func TestXMLNodes(t *testing.T) {
 	}
 }
 
-// TestStatusCatalogNull keeps a Status of an empty value.
+// TestStatusNull keeps a Status of an empty value.
 //
 // Verifies: [PROTOCOL Status 'T'] a Status's value is as SQL writes it,
-// empty for a null, as CATALOG is of a database with no catalog's name;
-// the client keeps the last value of each name.
-func TestStatusCatalogNull(t *testing.T) {
+// empty for a null, as STATEMENT.TIMEOUT_MS is of a session that set no
+// timeout; the client keeps the last value of each name.
+func TestStatusNull(t *testing.T) {
 	t.Parallel()
 
 	c := openGranted(t, []string{CapabilityStatus}, func(f *fake) {
 		f.request()
 		f.reply(kindStatus, func(w *writer) {
-			w.str(StatusCatalog)
+			w.str("STATEMENT.TIMEOUT_MS")
 			w.str("")
 		})
 		f.complete("00000", false)
@@ -428,7 +428,7 @@ func TestStatusCatalogNull(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if catalog, ok := c.Setting(StatusCatalog); !ok || catalog != "" {
-		t.Errorf("CATALOG = %q, %v", catalog, ok)
+	if timeout, ok := c.Setting("STATEMENT.TIMEOUT_MS"); !ok || timeout != "" {
+		t.Errorf("STATEMENT.TIMEOUT_MS = %q, %v", timeout, ok)
 	}
 }
