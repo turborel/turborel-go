@@ -18,6 +18,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -180,11 +181,11 @@ func (s *Server) settings() []string {
 		set = append(set, "SERVER.SOCKET="+s.Socket)
 	}
 
-	// Three arguments name the database and its owner, two each setting.
-	const fixed, perSetting = 3, 2
+	// Two arguments name the database, two each setting.
+	const fixed, perSetting = 2, 2
 
 	args := make([]string, 0, fixed+perSetting*len(set))
-	args = append(args, "--memory", "--owner", Owner)
+	args = append(args, "--dir", s.data())
 
 	for _, setting := range set {
 		args = append(args, "--set", setting)
@@ -193,18 +194,35 @@ func (s *Server) settings() []string {
 	return args
 }
 
-// run starts the server and waits for it to listen.
-func (s *Server) run(spec string) error {
-	args := s.settings()
+// data is the server's data directory: a database kept in files, as a
+// server keeps it, so its commits have log positions.
+func (s *Server) data() string { return filepath.Join(s.dir, "data") }
 
+// command is the command of spec, a program or an image, run with args.
+func (s *Server) command(spec string, args ...string) *exec.Cmd {
 	if image, ok := strings.CutPrefix(spec, dockerPrefix); ok {
-		docker := append([]string{"run", "--rm", "-i", "--network", "host", "-v", s.dir + ":" + s.dir, image}, args...)
-		s.cmd = exec.CommandContext(context.Background(), "docker", docker...)
-	} else {
-		s.cmd = exec.CommandContext(context.Background(), spec, args...)
+		// Run as the tests' own user, so the socket it makes is theirs to
+		// connect to and its files theirs to remove.
+		user := strconv.Itoa(os.Getuid()) + ":" + strconv.Itoa(os.Getgid())
+		run := []string{"run", "--rm", "-i", "--network", "host", "--user", user, "-v", s.dir + ":" + s.dir, image}
+
+		return exec.CommandContext(context.Background(), "docker", slices.Concat(run, args)...)
 	}
 
-	s.cmd.Stdin = strings.NewReader(OwnerPassword + "\n")
+	return exec.CommandContext(context.Background(), spec, args...)
+}
+
+// run makes the database's owner, then starts the server and waits for
+// it to listen.
+func (s *Server) run(spec string) error {
+	owner := s.command(spec, "--dir", s.data(), "user", "add", Owner, "--owner")
+	owner.Stdin = strings.NewReader(OwnerPassword + "\n")
+
+	if out, err := owner.CombinedOutput(); err != nil {
+		return fmt.Errorf("making the owner: %w: %s", err, out)
+	}
+
+	s.cmd = s.command(spec, s.settings()...)
 
 	// The server says where it listens on standard error, its log too.
 	out, err := s.cmd.StderrPipe()
