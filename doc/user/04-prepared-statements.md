@@ -6,7 +6,10 @@
 `Execute` runs it with a value for each, as many times as wanted.
 `Parameters` gives the type each `?` takes, `Columns` a query's columns.
 A prepared statement stays valid across transactions, until `Deallocate`
-lets it go.
+lets it go. A CALL takes a `?` for an OUT or INOUT parameter too: its
+`Parameters` are its inputs alone, its `Columns` one for each output, in
+the procedure's order, and `Execute` gives the outputs' values as one
+row of those columns.
 
 ```go
 byID, _ := conn.Prepare(ctx, "SELECT NAME FROM STAFF WHERE ID = ?")

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -297,4 +298,45 @@ func FuzzJSONDocument(f *testing.F) {
 			t.Fatalf("NewJSON of a document's item: %v", err)
 		}
 	})
+}
+
+// TestJSONSpecExample writes the page's example byte for byte.
+//
+// Verifies: [PROTOCOL JSON values] the value {"a":[1,"x"]} is the page's
+// 51 octets; an exact number is written in the narrowest of its three
+// nodes, and a decimal keeps the scale it was written with, 1.50 units
+// 150 and scale 2, read back with it; a document longer than 256 MiB is
+// refused (SQLSTATE 22032).
+func TestJSONSpecExample(t *testing.T) {
+	t.Parallel()
+
+	want := []byte{
+		0x01,
+		0x0B, 0x01, 0, 0, 0, 0x25, 0, 0, 0, 0, 0, 0, 0,
+		0x01, 0, 0, 0, 0x61,
+		0x0A, 0x02, 0, 0, 0, 0x0F, 0, 0, 0, 0, 0, 0, 0, 0x09, 0, 0, 0,
+		0x03, 0x01, 0, 0, 0, 0, 0, 0, 0,
+		0x08, 0x01, 0, 0, 0, 0x78,
+	}
+	if got := docOf(t, JSONObject{{Key: "a", Value: JSONArray{DecimalOf(1, 0), Char("x")}}}); !bytes.Equal(got, want) {
+		t.Errorf("wrote % X", got)
+	}
+
+	scaled := docOf(t, DecimalOf(150, 2))
+	if !bytes.Equal(scaled, []byte{1, jsonDecimal, 150, 0, 0, 0, 0, 0, 0, 0, 2}) {
+		t.Errorf("1.50 wrote % X", scaled)
+	}
+
+	back, err := JSONOf(scaled)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if item, err := back.Item(); err != nil || item != DecimalOf(150, 2) {
+		t.Errorf("1.50 read back as %v, %v", item, err)
+	}
+
+	part := Char(strings.Repeat("j", 64<<20))
+	_, err = NewJSON(JSONArray{part, part, part, part, part})
+	assertState(t, err, sqlstateInvalidJSON)
 }

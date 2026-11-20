@@ -125,8 +125,7 @@ func (c *Conn) changeStep(rep reply, mechanism Mechanism) (bool, error) {
 
 		c.authorization, c.key, c.server = r.authorization, r.key, r.server
 		// The session is renewed as Reset renews it, so no transaction is
-		// active, as the spec says; turborel-client keeps its flag (RULES.md
-		// D8).
+		// active.
 		c.active = false
 
 		return true, nil

@@ -84,7 +84,8 @@ at a time. `QueryMany` sends a text of several statements as one
 request, with multi-statement granted.
 
 `Prepare` prepares a statement under the connection's next number;
-`Execute` runs it, a query's rows read whole; `OpenCursor` opens its
+`Execute` runs it, a query's rows read whole, a CALL's output
+parameters' values as one row of its columns; `OpenCursor` opens its
 cursor and reads at most the rows asked for, `Fetch` more, each `Batch`
 saying whether the cursor has more. A cursor other than 0 needs cursors,
 `Describe` and `DescribeCursor` need describe.

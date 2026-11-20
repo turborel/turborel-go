@@ -143,7 +143,7 @@ func TestLiveReset(t *testing.T) {
 // connection again, with the same Challenge and Answer steps as Hello's,
 // SCRAM's here; accepted, the session is renewed under the new user and a
 // new cancel key, Ready keeping the capabilities, no transaction active,
-// as after Reset (RULES.md D8); refused, the connection fails [CLIENT
+// as after Reset; refused, the connection fails [CLIENT
 // Controlling the session], change-user granted [PROTOCOL Capabilities].
 func TestLiveChangeUser(t *testing.T) {
 	t.Parallel()

@@ -270,7 +270,7 @@ func TestReplicaBehind(t *testing.T) {
 // mechanism and its first bytes, then answers each Challenge as Hello's
 // exchange does; Ready renews the authorization and the cancel key, and
 // the session, with no transaction active, as Reset renews it [CLIENT
-// Controlling the session] (RULES.md D8); a mechanism that asks refuses a
+// Controlling the session]; a mechanism that asks refuses a
 // server that did not prove itself.
 func TestChangeUserSteps(t *testing.T) {
 	t.Parallel()
@@ -391,5 +391,31 @@ func TestXMLNodes(t *testing.T) {
 
 	if !strings.Contains(XML("<x/>").Text(), "x") {
 		t.Error("Text misread")
+	}
+}
+
+// TestStatusCatalogNull keeps a Status of an empty value.
+//
+// Verifies: [PROTOCOL Status 'T'] a Status's value is as SQL writes it,
+// empty for a null, as CATALOG is of a database with no catalog's name;
+// the client keeps the last value of each name.
+func TestStatusCatalogNull(t *testing.T) {
+	t.Parallel()
+
+	c := openGranted(t, []string{CapabilityStatus}, func(f *fake) {
+		f.request()
+		f.reply(kindStatus, func(w *writer) {
+			w.str(StatusCatalog)
+			w.str("")
+		})
+		f.complete("00000", false)
+	})
+
+	if _, err := c.Query(context.Background(), "VALUES 1"); err != nil {
+		t.Fatal(err)
+	}
+
+	if catalog, ok := c.Setting(StatusCatalog); !ok || catalog != "" {
+		t.Errorf("CATALOG = %q, %v", catalog, ok)
 	}
 }
