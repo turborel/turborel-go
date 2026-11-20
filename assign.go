@@ -60,7 +60,7 @@ func assigned(values []Value, params []Parameter) ([]Value, *Error) {
 func assignString(s string, t DataType) (Value, *Error) {
 	switch t := t.(type) {
 	case CharacterType:
-		kept, err := fitString(s, uint64(t.Length), t.Units, writtenType("CHARACTER", uint64(t.Length), t.Units),
+		kept, err := fitString(s, uint64(t.Length), t.Units, lengthWritten("CHARACTER", uint64(t.Length), t.Units),
 			assignCharacter)
 		if err != nil {
 			return nil, err
@@ -68,7 +68,7 @@ func assignString(s string, t DataType) (Value, *Error) {
 
 		return Char(kept + strings.Repeat(space, clampInt(uint64(t.Length)-countUnits(kept, t.Units)))), nil
 	case VaryingType:
-		kept, err := fitString(s, uint64(t.Length), t.Units, writtenType("CHARACTER VARYING", uint64(t.Length), t.Units),
+		kept, err := fitString(s, uint64(t.Length), t.Units, lengthWritten("CHARACTER VARYING", uint64(t.Length), t.Units),
 			assignVarying)
 		if err != nil {
 			return nil, err
@@ -156,7 +156,7 @@ func fitLOB(s string, t CLOBType) (string, *Error) {
 		return kept, nil
 	}
 
-	written := writtenType("CHARACTER LARGE OBJECT", t.Length, t.Units)
+	written := lengthWritten("CHARACTER LARGE OBJECT", t.Length, t.Units)
 
 	return "", truncated("a large object longer than "+written+", not padding beyond it, does not fit it", assignLOB,
 		written)
@@ -175,9 +175,9 @@ func truncated(message, rule, written string) *Error {
 // connection.
 const severityError = "ERROR"
 
-// writtenType gives a character string type as SQL writes it, as
+// lengthWritten gives a character string type as SQL writes it, as
 // CHARACTER(5) or CHARACTER(5 OCTETS).
-func writtenType(name string, length uint64, units CharUnits) string {
+func lengthWritten(name string, length uint64, units CharUnits) string {
 	if units == Octets {
 		return name + "(" + strconv.FormatUint(length, decimalRadix) + " OCTETS)"
 	}

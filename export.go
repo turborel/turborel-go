@@ -143,13 +143,16 @@ func encodeReply(kind byte, body func(w *writer)) []byte {
 	return w.buf
 }
 
-// encodeColumns writes a list of columns.
+// encodeColumns writes a list of columns, then the tail of their
+// declared types, if any has one.
 func encodeColumns(w *writer, columns []Column) {
 	w.u32(count32(len(columns)))
 
 	for _, c := range columns {
 		c.encode(w)
 	}
+
+	encodeDeclared(w, columns)
 }
 
 // csvField gives field as a CSV field, quoted if it is empty or holds a

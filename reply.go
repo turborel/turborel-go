@@ -172,9 +172,9 @@ func (r *reader) reply(kind byte) reply {
 	case kindReady:
 		return readyReply{authorization: r.str(), key: r.key(), capabilities: r.strs(), server: r.str()}
 	case kindPrepared:
-		return preparedReply{statement: r.u32(), parameters: r.parameters(), columns: r.columns()}
+		return preparedReply{statement: r.u32(), parameters: r.parameters(), columns: r.describedColumns()}
 	case kindDescription:
-		return descriptionReply{columns: r.columns()}
+		return descriptionReply{columns: r.describedColumns()}
 	case kindRows:
 		return rowsReply{rows: r.rows()}
 	case kindSuspended:

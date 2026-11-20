@@ -20,6 +20,26 @@ fmt.Println(got.Rows[0][0])
 // Grace
 ```
 
+A column's `Type` is what its values are read by, and one type's tag
+stands for several declared types: an INTEGER column's `Type` is an
+exact numeric type of precision 10 and scale 0, as a DECIMAL(10,0)
+one's is. The connection asks for `declared-types`; granted it, a
+column's `Declared` holds the type it was declared with, its `Name` as
+the Information Schema's DATA_TYPE gives it and its type `Written` as
+SQL writes it. `TypeWritten` gives the declared type where the server
+told it, else the type its tag says, NUMERIC(10,0) of that INTEGER
+column.
+
+```go
+typed, _ := conn.Prepare(ctx, "SELECT ID, NAME, SALARY FROM STAFF")
+for _, c := range typed.Columns() {
+	fmt.Println(c.Name, c.Declared.Name, c.TypeWritten())
+}
+// ID INTEGER INTEGER
+// NAME CHARACTER VARYING CHARACTER VARYING(20)
+// SALARY DECIMAL DECIMAL(9,2)
+```
+
 ## Cursors
 
 `OpenCursor` runs a prepared query and gives its first rows, at most as

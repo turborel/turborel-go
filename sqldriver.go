@@ -538,8 +538,17 @@ func (r *sqlRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-// ColumnTypeDatabaseTypeName gives column i's type's name.
-func (r *sqlRows) ColumnTypeDatabaseTypeName(i int) string { return typeName(r.st.columns[i].Type) }
+// ColumnTypeDatabaseTypeName gives the name of column i's type: that
+// of the type it was declared with, as the Information Schema's
+// DATA_TYPE gives it, where the server told it, else that of the type
+// its tag says.
+func (r *sqlRows) ColumnTypeDatabaseTypeName(i int) string {
+	if d := r.st.columns[i].Declared; d != nil {
+		return d.Name
+	}
+
+	return typeName(r.st.columns[i].Type)
+}
 
 // ColumnTypeNullable says whether column i may hold a null, as the
 // server knows.

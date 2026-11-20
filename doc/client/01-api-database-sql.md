@@ -73,7 +73,11 @@ TIME ZONE to the microsecond; any of the driver's values as it is; a
 | any other | the driver's own value |
 
 A large object that came by its locator is read whole first. The rows'
-column types give their names as the server's catalog does, whether
+column types give their names as the Information Schema's DATA_TYPE
+does, of the type each was declared with: INTEGER of an INTEGER
+column, DECIMAL of a DECIMAL(9,2) one. The connection asks for
+`declared-types`; where the server did not grant it, the name is that
+of the type the value's tag says, NUMERIC of both. They give whether
 each may hold a null, the scan type of the table above, a string type's
 length, and an exact number's precision and scale.
 

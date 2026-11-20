@@ -53,6 +53,19 @@ func (c *Conn) SetQueryAttributes(attributes []Attribute) error
 func (c *Conn) Prepare(ctx context.Context, sql string) (*Statement, error)
 func (s *Statement) Parameters() []Parameter
 func (s *Statement) Columns() []Column
+type Parameter struct {
+	Varying bool
+	Type    DataType
+}
+type Column struct {
+	Name     string
+	Named    bool
+	Type     DataType
+	NotNull  bool
+	Declared *Declared
+}
+type Declared struct{ Name, Written string }
+func (c Column) TypeWritten() string
 func (c *Conn) Execute(ctx context.Context, st *Statement, values []Value) (*Outcome, error)
 func (c *Conn) OpenCursor(ctx context.Context, st *Statement, values []Value, rows uint32) (*Batch, error)
 func (c *Conn) OpenCursorNumbered(ctx context.Context, st *Statement, cursor uint32, values []Value, rows uint32) (*Batch, error)
@@ -91,6 +104,16 @@ cursor and reads at most the rows asked for, `Fetch` more, each `Batch`
 saying whether the cursor has more. A cursor other than 0 needs cursors,
 `Describe` and `DescribeCursor` need describe.
 
+A `Column` has its name, if it has one, the `Type` its values are read
+by, and whether it is NOT NULL. Its `Declared` is the type it was
+declared with, granted `declared-types`, which connecting asks for: its
+name as the Information Schema's DATA_TYPE gives it, as INTEGER or
+DECIMAL, and the type as SQL writes it, as DECIMAL(9,2); else nil.
+`TypeWritten` gives the declared type where the server told it, else
+the type its tag says, an exact numeric one as NUMERIC(10,0), an
+approximate one as FLOAT(53). A `Parameter` is a `?`'s type, `Varying`
+where the statement does not decide it.
+
 A completion's tail is kept as the connection's last: `RowsAffected`
 with row-counts, `LastGenerated` with generated-values, `ServerTime`
 with row-counts, `CommitPosition` with commit-position, `Conditions` with
@@ -111,7 +134,7 @@ the connection lost.
 | 40002 | A commit, of autocommit, that failed |
 | TB920 | SQLCODE -920: the statement was cancelled |
 | 08006 | SQLCODE -919, before anything is sent, the connection kept: query attributes past the bounds a server takes |
-| 08006 | SQLCODE -919: a capability not granted, a reply out of its place or malformed, or the connection lost |
+| 08006 | SQLCODE -919: a capability not granted, a reply out of its place or malformed, declared types not one for each column among them, or the connection lost |
 | TB916 | SQLCODE -916: a reply holding a value the driver cannot take, the rest of the statement's replies read past, the connection kept; past turborel's limits, -900 (0A000) |
 
 ## EXAMPLES
@@ -120,7 +143,7 @@ The examples of [Running Queries](../user/03-queries.md), [Prepared Statements](
 
 ## STANDARD
 
-[PROTOCOL Query 'Q'], [PROTOCOL Prepare 'P'], [PROTOCOL Execute 'E'], [PROTOCOL Fetch 'F'], [PROTOCOL Close 'C'], [PROTOCOL Deallocate 'D'], [PROTOCOL Describe 'Y'], [PROTOCOL Complete 'K'] and [PROTOCOL The tail] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Running statements], [CLIENT Prepared statements] and [CLIENT Controlling the session] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
+[PROTOCOL Query 'Q'], [PROTOCOL Prepare 'P'], [PROTOCOL Execute 'E'], [PROTOCOL Fetch 'F'], [PROTOCOL Close 'C'], [PROTOCOL Deallocate 'D'], [PROTOCOL Describe 'Y'], [PROTOCOL Prepared 'P'], [PROTOCOL Description 'D'], [PROTOCOL Declared types], [PROTOCOL Complete 'K'] and [PROTOCOL The tail] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Running statements], [CLIENT Prepared statements] and [CLIENT Controlling the session] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
 
 ## SEE ALSO
 

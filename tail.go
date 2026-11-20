@@ -31,6 +31,7 @@ const (
 	tailGenerated  byte = 16
 	tailConditions byte = 17
 	tailTime       byte = 18
+	tailDeclared   byte = 19
 )
 
 // The bounds of a message's attributes [PROTOCOL The tail].

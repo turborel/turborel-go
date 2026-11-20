@@ -4,12 +4,17 @@ package turborel
 // parameter and a failure, as the replies carry them.
 
 // Column is a column of a result: its name, if it has one, its type,
-// and whether it is NOT NULL.
+// and whether it is NOT NULL. Type is what its values are read by; a
+// type's tag can stand for several declared types, so an INTEGER
+// column's Type is an exact numeric type of precision 10 and scale 0.
+// Declared is the type it was declared with, where the server told it,
+// granted `declared-types`; else nil.
 type Column struct {
-	Name    string
-	Named   bool
-	Type    DataType
-	NotNull bool
+	Name     string
+	Named    bool
+	Type     DataType
+	NotNull  bool
+	Declared *Declared
 }
 
 // Parameter is the type of a statement's `?` parameter. Varying says the
