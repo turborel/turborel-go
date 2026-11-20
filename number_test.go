@@ -92,9 +92,9 @@ func TestExactText(t *testing.T) {
 // TestDecFloatForm keeps a DECFLOAT in its one form.
 //
 // Verifies: [PROTOCOL Values] a decimal floating-point value's
-// coefficient and exponent are kept in turborel's one form: trailing
-// zeros taken into the exponent, at most 34 digits, the adjusted
-// exponent within -6143 and 6144; outside it, refused.
+// coefficient and exponent are made as turborel's DecFloat::new makes
+// them: trailing zeros taken into the exponent, at most 34 digits, the
+// adjusted exponent within -6143 and 6144; outside it, refused.
 func TestDecFloatForm(t *testing.T) {
 	t.Parallel()
 
@@ -118,12 +118,41 @@ func TestDecFloatForm(t *testing.T) {
 	}{
 		{big.NewInt(10), 6144},
 		{big.NewInt(1), -6144},
-		{bigOf(t, "12345678901234567890123456789012345"), 0},
-		{bigOf(t, "123456789012345678901234567890123456789012345"), 0},
 		{big.NewInt(10), 2147483647},
+		{bigOf(t, "99999999999999999999999999999999999"), 6110},
 	} {
 		_, err := NewDecFloat(c.coefficient, c.exponent)
 		assertOutOfRange(t, err)
+	}
+}
+
+// TestDecFloatRounded rounds a coefficient past 34 digits as turborel
+// does.
+//
+// Verifies: [PROTOCOL Values] a coefficient of more than 34 digits is
+// rounded half to even to 34, as turborel's DecFloat::new rounds it:
+// exactly half rounds to the even digit, more than half up, a sticky
+// digit below the half up, and 35 nines up to the next power of ten.
+func TestDecFloatRounded(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		coefficient, want string
+		exponent          int32
+	}{
+		{"12345678901234567890123456789012345", "1234567890123456789012345678901234", 1},
+		{"12345678901234567890123456789012355", "1234567890123456789012345678901236", 1},
+		{"12345678901234567890123456789012346", "1234567890123456789012345678901235", 1},
+		{"123456789012345678901234567890123451", "1234567890123456789012345678901235", 2},
+		{"-12345678901234567890123456789012345", "-1234567890123456789012345678901234", 1},
+		{"99999999999999999999999999999999999", "1", 35},
+		{"170141183460469231731687303715884105727", "1701411834604692317316873037158841", 5},
+	}
+	for _, c := range cases {
+		d, err := NewDecFloat(bigOf(t, c.coefficient), 0)
+		if err != nil || d.Coefficient().String() != c.want || d.Exponent() != c.exponent {
+			t.Errorf("%s rounded to %vE%d, %v; want %sE%d", c.coefficient, d.Coefficient(), d.Exponent(), err, c.want, c.exponent)
+		}
 	}
 }
 

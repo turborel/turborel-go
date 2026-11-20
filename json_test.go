@@ -194,7 +194,7 @@ func TestJSONDamaged(t *testing.T) {
 		"not a member":  notMember,
 		"count past":    {1, 10, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0, 0, 0},
 		"deep":          deep,
-		"DECFLOAT":      append(append([]byte{1, 6}, bytes.Repeat([]byte{0xFF}, 15)...), 0x7F, 0, 0, 0, 0),
+		"DECFLOAT":      append(append([]byte{1, 6, 1}, make([]byte, 15)...), 0xFF, 0xFF, 0xFF, 0x7F),
 	}
 	for name, doc := range cases {
 		if _, err := JSONOf(doc); err == nil {
@@ -202,6 +202,30 @@ func TestJSONDamaged(t *testing.T) {
 		} else {
 			assertInvalidJSON(t, err)
 		}
+	}
+}
+
+// TestJSONDecFloatRounded reads a DECFLOAT node of more than 34 digits
+// rounded, as turborel's node reader does.
+//
+// Verifies: [PROTOCOL Values] a DECFLOAT node is read by turborel's
+// DecFloat::new at 34 digits: the greatest i128, 39 digits, is read
+// rounded half to even to 34, its exponent raised by 5.
+func TestJSONDecFloatRounded(t *testing.T) {
+	t.Parallel()
+
+	node := append(append([]byte{1, 6}, bytes.Repeat([]byte{0xFF}, 15)...), 0x7F, 0, 0, 0, 0)
+
+	j, err := JSONOf(node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	item, err := j.Item()
+
+	d, ok := item.(DecFloat)
+	if err != nil || !ok || d.Coefficient().String() != "1701411834604692317316873037158841" || d.Exponent() != 5 {
+		t.Errorf("read %#v, %v", item, err)
 	}
 }
 

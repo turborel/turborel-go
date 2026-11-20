@@ -34,7 +34,9 @@ every case.
 An exact number is a `Decimal`, which holds every units and scale the
 protocol carries and gives its units as a `*big.Int`; its `String` writes
 it as SQL does, as `-12.50`. A DECFLOAT is a `DecFloat`, kept in
-Turborel's one form. A datetime is a `Datetime`, its instant in UTC
+Turborel's one form; `NewDecFloat` rounds a coefficient of more than 34
+digits half to even, as Turborel does, and a JSON value's DECFLOAT is
+read the same way. A datetime is a `Datetime`, its instant in UTC
 microseconds from 0001-01-01 with its displacement, whose `Time` gives
 a `time.Time`. A JSON value is a `JSON`, its stored form checked whole,
 whose `Item` gives its SQL/JSON item. A UUID is a `UUID`, whose `String`
@@ -49,6 +51,6 @@ M3, when statements give and take these values.
 
 | SQLSTATE | When |
 |---|---|
-| 22003 | `NewDecimal` or `NewInterval` of units outside a signed 128-bit integer; `NewDecFloat` of more than 34 significant digits, or out of DECFLOAT's range; `ParseUUID` of text that is no UUID |
+| 22003 | `NewDecimal` or `NewInterval` of units outside a signed 128-bit integer; `NewDecFloat` out of DECFLOAT's range; `ParseUUID` of text that is no UUID |
 | 22032 | `NewJSON` of an item nested deeper than 128, or `JSONOf` of octets that are not a stored JSON value |
 | 08006 | A reply holding a value that is malformed, SQLCODE -919: the connection fails |

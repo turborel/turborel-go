@@ -37,13 +37,55 @@ type DecFloat struct {
 	exponent    int32
 }
 
-// NewDecFloat is coefficient times ten to the exponent, its trailing
-// zeros taken into the exponent. It fails, as an [*Error] of SQLSTATE
-// 22003, if the coefficient has more than 34 significant digits or the
-// number is outside DECFLOAT's range.
+// NewDecFloat is coefficient times ten to the exponent, as turborel's
+// DecFloat::new makes it at DECFLOAT's 34 digits: rounded half to even to
+// 34 significant digits, then its trailing zeros taken into the exponent.
+// It fails, as an [*Error] of SQLSTATE 22003, if the number is outside
+// DECFLOAT's range.
 func NewDecFloat(coefficient *big.Int, exponent int32) (DecFloat, error) {
-	c := new(big.Int).Set(coefficient)
-	e := int64(exponent)
+	return roundDecFloat(coefficient, int64(exponent))
+}
+
+// roundDecFloat is coefficient times ten to the exponent, rounded to 34
+// digits and in its one form, as turborel's DecFloat::new and its
+// Unrounded::rounded make it: each digit past the 34th dropped, the
+// exponent raised for each, the last kept digit rounded up if what was
+// dropped is more than half, or exactly half and the kept digit odd.
+func roundDecFloat(coefficient *big.Int, exponent int64) (DecFloat, error) {
+	negative := coefficient.Sign() < 0
+	magnitude := new(big.Int).Abs(coefficient)
+	ten := big.NewInt(decimalRadix)
+	dropped, sticky := int64(0), false
+
+	for range len(magnitude.String()) - maxDecFloatDigits {
+		sticky = sticky || dropped != 0
+
+		var digit big.Int
+
+		magnitude.QuoRem(magnitude, ten, &digit)
+		dropped = digit.Int64()
+		exponent++
+	}
+
+	odd := magnitude.Bit(0) == 1
+	if dropped > roundingHalf || dropped == roundingHalf && (sticky || odd) {
+		magnitude.Add(magnitude, big.NewInt(1))
+	}
+
+	if negative {
+		magnitude.Neg(magnitude)
+	}
+
+	return canonicalDecFloat(magnitude, exponent)
+}
+
+// roundingHalf is the dropped digit at which rounding goes up, or to even.
+const roundingHalf = 5
+
+// canonicalDecFloat is c times ten to e, c of at most 35 digits, its
+// trailing zeros taken into the exponent; out of range if the exponent
+// leaves an int32 or the adjusted exponent DECFLOAT's range.
+func canonicalDecFloat(c *big.Int, e int64) (DecFloat, error) {
 	ten := big.NewInt(decimalRadix)
 
 	for c.Sign() != 0 && new(big.Int).Rem(c, ten).Sign() == 0 {
@@ -55,18 +97,12 @@ func NewDecFloat(coefficient *big.Int, exponent int32) (DecFloat, error) {
 		return DecFloat{}, nil
 	}
 
-	if e > maxInt32 {
+	bits, ok := int128OfBig(c)
+	if !ok || e > maxInt32 || e < minInt32 {
 		return DecFloat{}, outOfRange(errDecFloatExponent.Error())
 	}
 
-	bits, ok := int128OfBig(c)
-	if !ok {
-		return DecFloat{}, outOfRange(errDecFloatDigits.Error())
-	}
-
-	// e began as an int32 and only grew, and was checked against the
-	// greatest int32 above.
-	d := DecFloat{coefficient: bits, exponent: int32(e)} //nolint:gosec // G115: within an int32, as said above.
+	d := DecFloat{coefficient: bits, exponent: int32(e)} //nolint:gosec // G115: checked to be within an int32 above.
 	if err := d.check(); err != nil {
 		return DecFloat{}, outOfRange(err.Error())
 	}
@@ -74,8 +110,11 @@ func NewDecFloat(coefficient *big.Int, exponent int32) (DecFloat, error) {
 	return d, nil
 }
 
-// maxInt32 is the greatest int32, an exponent's bound.
-const maxInt32 = 1<<31 - 1
+// The bounds of an int32, an exponent's.
+const (
+	maxInt32 = 1<<31 - 1
+	minInt32 = -1 << 31
+)
 
 // Coefficient gives the number's digits, signed, with no trailing zeros.
 func (d DecFloat) Coefficient() *big.Int {

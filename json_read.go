@@ -146,8 +146,9 @@ func (j *jsonReader) scalar(tag byte, at int) (JSONItem, int) {
 	}
 }
 
-// decFloat reads a DECFLOAT node's body, its trailing zeros taken into
-// its exponent.
+// decFloat reads a DECFLOAT node's body, as turborel's node reader does:
+// by DecFloat::new at 34 digits, so a longer coefficient is rounded and
+// trailing zeros are taken into the exponent; one out of range fails.
 func (j *jsonReader) decFloat(at int) JSONItem {
 	coefficient := int128At(j.field(at, int128Bytes))
 	exponent := signed32(binary.LittleEndian.Uint32(j.field(at+int128Bytes, u32Bytes)))

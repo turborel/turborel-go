@@ -67,8 +67,10 @@ its source type. Types and values nest at most 16 deep.
 | 27 | UUID | `UUID` | 16 octets; `String()` and `ParseUUID` its text |
 
 `NewDecimal`, `NewDecFloat` and `NewInterval` refuse a number the
-protocol cannot carry with an `*Error` of SQLSTATE 22003, and `NewJSON`
-and `JSONOf` refuse a JSON value that is not one with SQLSTATE 22032.
+protocol cannot carry with an `*Error` of SQLSTATE 22003; `NewDecFloat`
+first rounds a coefficient of more than 34 digits half to even, as
+Turborel's DecFloat::new does. `NewJSON` and `JSONOf` refuse a JSON
+value that is not one with SQLSTATE 22032.
 
 ## JSON items
 
