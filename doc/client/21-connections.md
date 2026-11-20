@@ -107,6 +107,6 @@ shows its secret in its string.
 | 28000 | A password or SCRAM over plain TCP, refused before connecting; credentials the server refused, as a wrong password; the server's SCRAM signature false |
 | 08004 | The server refused the connection |
 | 08006 | SQLCODE -919: the server could not be reached, the TLS handshake failed, a wait ran out, a reply was malformed or too long, a capability not granted was needed, or the connection was lost before |
-| 0A000 | SQLCODE -900: an offer of more than 32 attributes, or of one whose name is not 1 to 64 bytes or whose value is longer than 1024 |
+| 08006 | SQLCODE -919, before anything is sent: an offer of more than 32 attributes, or of one whose name is not 1 to 64 bytes or whose value is longer than 1024 |
 | TB910 | SQLCODE -910: a TLS target with no TLS configuration, or a target of no kind |
 | 40002 | The commit Terminate made failed, as of a deferred constraint not satisfied |

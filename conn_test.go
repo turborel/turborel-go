@@ -145,7 +145,7 @@ func TestLoginBroken(t *testing.T) {
 	}
 
 	_, err = openFake(t, Trust{}, quickConfig(many), func(*fake) {})
-	assertFailure(t, err, sqlcodeBeyond, sqlstateFeatureNotSupported, "attributes are more than")
+	assertBroken(t, err, "attributes are more than")
 }
 
 // TestLoginContextDone gives up a login whose context is done.

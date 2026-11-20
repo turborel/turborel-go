@@ -47,12 +47,12 @@ const (
 // -919 and SQLSTATE 08006, without sending it.
 func checkAttributes(attributes []Attribute) error {
 	if len(attributes) > maxAttributes {
-		return beyond(fmt.Sprintf("%d attributes are more than the %d taken", len(attributes), maxAttributes))
+		return broken(fmt.Sprintf("%d attributes are more than the %d taken", len(attributes), maxAttributes))
 	}
 
 	for _, a := range attributes {
 		if a.Name == "" || len(a.Name) > maxAttributeName || len(a.Value) > maxAttributeValue {
-			return beyond(fmt.Sprintf("an attribute's name is 1 to %d bytes and its value at most %d",
+			return broken(fmt.Sprintf("an attribute's name is 1 to %d bytes and its value at most %d",
 				maxAttributeName, maxAttributeValue))
 		}
 	}
