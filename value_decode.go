@@ -7,6 +7,7 @@ package turborel
 
 import (
 	"math"
+	"strconv"
 	"unicode/utf8"
 )
 
@@ -23,6 +24,13 @@ func (r *reader) value() Value {
 
 	if v, ok := r.constructedValue(tag); ok {
 		return v
+	}
+
+	if tag == tagCLOB || tag == tagBLOB {
+		r.failValue(corruptValue("a value of tag " + strconv.Itoa(int(tag)) +
+			", a large object's stored form, is never sent"))
+
+		return nil
 	}
 
 	r.fail("no value has this tag")
@@ -52,7 +60,7 @@ func (r *reader) scalarValue(tag byte) (Value, bool) {
 	case tagInterval:
 		return Interval{Qualifier: r.qualifier(), units: r.i128()}, true
 	case tagBoolean:
-		return Bool(r.flag()), true
+		return r.truth(), true
 	case tagDecFloat:
 		return r.decFloat(), true
 	default:
@@ -104,6 +112,17 @@ func (r *reader) values() []Value {
 	}
 
 	return list
+}
+
+// truth reads a truth value's byte, 0 or 1; another is a value the
+// driver cannot take.
+func (r *reader) truth() Value {
+	b := r.u8()
+	if b != flagFalse && b != flagTrue && r.err == nil {
+		r.failValue(corruptValue(strconv.Itoa(int(b)) + " is not a truth value"))
+	}
+
+	return Bool(b == flagTrue)
 }
 
 // datetime reads a date, a time or a timestamp: zoned, precision, the
@@ -192,7 +211,12 @@ func (r *reader) json() JSON {
 	}
 
 	if err := validateJSON(b); err != nil {
-		r.fail(err.Error())
+		failure := jsonFailure(err)
+		if failure.SQLState == sqlstateInvalidJSON {
+			failure = corruptValue(err.Error())
+		}
+
+		r.failValue(failure)
 	}
 
 	return JSON{doc: b}

@@ -193,7 +193,11 @@ func (c *Conn) DescribeCursor(ctx context.Context, st *Statement, cursor uint32)
 		return nil, withCause(err, ctx.Err())
 	}
 
+	// A cursor's Description comes alone, with no rows after it.
+	c.answeredByOne = true
 	rep, err := c.receive()
+	c.answeredByOne = false
+
 	if err != nil {
 		return nil, withCause(err, ctx.Err())
 	}

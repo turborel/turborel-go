@@ -433,14 +433,10 @@ rule here, the rule is kept:
 Where turborel-client is inconsistent, every Turborel driver follows one
 rule, so all behave alike; each is a departure from that client:
 
-- A reply value that cannot be decoded loses the connection, SQLCODE
-  -919, SQLSTATE 08006: a character type's units byte or a truth byte
-  other than 0 or 1, a damaged JSON document, one nested past 128 or
-  longer than 256 MiB, a malformed condition in Complete's tag 17.
-  turborel-client gives TB916 or 0A000 on some of these paths and keeps
-  the connection, the rest of the reply unread.
 - Value tags 18 and 19, the server's stored form of large objects, never
-  sent on the wire, are refused as malformed, -919/08006, though
+  sent on the wire, are refused as a value the driver cannot take,
+  SQLCODE -916, SQLSTATE TB916: the request fails, the rest of its
+  replies read past, and the connection goes on, as of any such value.
   turborel-protocol's reader takes them.
 - Attributes past their bounds are refused before anything is sent,
   -919/08006, the connection kept. turborel-client sends them, and the

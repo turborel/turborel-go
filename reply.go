@@ -238,7 +238,7 @@ func (r *reader) conditions() []*Error {
 
 		condition := inner.failure()
 		if err := inner.finish(); err != nil {
-			r.fail("a condition is malformed")
+			r.failValue(corruptValue("a condition is malformed: " + asError(err).Message))
 
 			break
 		}

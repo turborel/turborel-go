@@ -95,8 +95,11 @@ SERVER_VERSION, SERVER_READ_ONLY, CATALOG and OWNER. `Ping` asks whether
 the server and the connection are alive, with `ping` granted. A context
 done while a call waits gives the call up, the connection lost.
 
-`Terminate` ends the session as SESSION.COMMIT_AT_END says; `Close` closes
-at once. A `Canceller` cancels the statement the connection runs, from
+`Terminate` ends the session as SESSION.COMMIT_AT_END says, reading the
+server's replies until it closes, past a Notice or Status, an Error's
+failure given; on a stream that takes deadlines, `Open`'s too, it waits
+at most the read timeout, else 60 seconds, and on one that takes none,
+as its maker set it. `Close` closes at once. A `Canceller` cancels the statement the connection runs, from
 another goroutine. Neither a `Password`, a `Scram` nor a `Canceller`
 shows its secret in its string.
 

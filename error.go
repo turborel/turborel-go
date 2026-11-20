@@ -143,6 +143,18 @@ func outOfRange(message string) *Error {
 	return &Error{SQLCode: sqlcodeData, SQLState: sqlstateOutOfRange, Message: message}
 }
 
+// The SQLCODE and SQLSTATE of a damaged value received, as turborel's.
+const (
+	sqlcodeCorrupt  int32 = -916
+	sqlstateCorrupt       = "TB916"
+)
+
+// corruptValue is a value received that the driver cannot take,
+// SQLSTATE TB916.
+func corruptValue(message string) *Error {
+	return &Error{SQLCode: sqlcodeCorrupt, SQLState: sqlstateCorrupt, Message: message}
+}
+
 // misused is the program's misuse of the driver, SQLSTATE TB910.
 func misused(message string) *Error {
 	return &Error{SQLCode: sqlcodeMisuse, SQLState: sqlstateMisuse, Message: message}

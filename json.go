@@ -22,8 +22,10 @@ package turborel
 
 import (
 	"encoding/binary"
+	"errors"
 	"math"
 	"sort"
+	"strings"
 )
 
 // The layout of D89's binary tree.
@@ -112,7 +114,7 @@ func NewJSON(item JSONItem) (JSON, error) {
 // form.
 func JSONOf(doc []byte) (JSON, error) {
 	if err := validateJSON(doc); err != nil {
-		return JSON{}, invalidJSON(err.Error())
+		return JSON{}, jsonFailure(err)
 	}
 
 	return JSON{doc: append([]byte{}, doc...)}, nil
@@ -132,7 +134,7 @@ func (j JSON) Item() (JSONItem, error) {
 
 	item, err := readJSONDocument(j.doc)
 	if err != nil {
-		return nil, invalidJSON(err.Error())
+		return nil, jsonFailure(err)
 	}
 
 	return item, nil
@@ -302,4 +304,14 @@ func patchWord(w *writer, at, n int) {
 
 	word.u32(count32(n))
 	copy(w.buf[at:at+u32Bytes], word.buf)
+}
+
+// jsonFailure gives the driver's failure of a document readJSONDocument
+// refused: past turborel's limits, SQLSTATE 0A000; else 22032.
+func jsonFailure(err error) *Error {
+	if errors.Is(err, errJSONBeyond) {
+		return beyond(jsonBeyond + strings.TrimPrefix(err.Error(), errJSONBeyond.Error()+": "))
+	}
+
+	return invalidJSON(err.Error())
 }

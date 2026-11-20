@@ -86,18 +86,28 @@ func (c *Conn) receive() (reply, error) {
 
 		rep, err := decodeReply(kind, body)
 		if err != nil {
-			return nil, c.failed(err)
+			return nil, c.undecoded(kind, body, err)
 		}
 
-		switch r := rep.(type) {
-		case noticeReply:
-			c.notice(r.notice)
-		case statusReply:
-			c.settings[r.name] = r.value
-		default:
-			return c.noted(rep), nil
+		if taken := c.took(rep); taken != nil {
+			return taken, nil
 		}
 	}
+}
+
+// took takes rep, a Notice or a Status, as the session's; any other reply
+// it gives, its end noted.
+func (c *Conn) took(rep reply) reply {
+	switch r := rep.(type) {
+	case noticeReply:
+		c.notice(r.notice)
+	case statusReply:
+		c.settings[r.name] = r.value
+	default:
+		return c.noted(rep)
+	}
+
+	return nil
 }
 
 // noted notes what a reply says of the session's transaction.
@@ -196,9 +206,12 @@ func (c *Conn) Close() error {
 }
 
 // Terminate ends the session, its transaction as SESSION.COMMIT_AT_END
-// says, once the server has closed the connection, waiting at most the
-// read timeout, else 60 seconds [CLIENT Connecting]. A commit that fails
-// as the session ends gives its failure, the transaction rolled back.
+// says, once the server has closed the connection [CLIENT Connecting]. It
+// reads the server's replies a frame at a time until the close, past any
+// Notice or Status, and gives an Error's failure: a commit that fails as
+// the session ends, the transaction rolled back. On a stream that takes
+// deadlines it waits at most the read timeout, else 60 seconds; on one
+// that takes none, as its maker set it.
 func (c *Conn) Terminate() error {
 	defer func() { _ = c.stream.Close() }() // The connection ends whatever Terminate meets.
 
@@ -214,30 +227,34 @@ func (c *Conn) Terminate() error {
 	_ = c.stream.SetDeadline(deadlineOf(within)) // A stream that takes no deadline is bounded by its maker.
 	c.lost = broken("the session was terminated")
 
-	rest, err := io.ReadAll(io.LimitReader(c.r, int64(c.maxBody)+frameHeaderBytes))
-	if err != nil {
-		return ioFailed(verbReceive, err)
-	}
+	for {
+		if _, err := c.r.Peek(1); err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
 
-	return terminated(rest, c.maxBody)
+			return ioFailed(verbReceive, err)
+		}
+
+		if err := c.terminating(); !errors.Is(err, errTerminating) {
+			return err
+		}
+	}
 }
 
-// terminated reads what the server sent before closing, after
-// Terminate: nothing, or a notice or status, ends well; an Error is the
-// session's end failing.
-func terminated(rest []byte, limit uint32) error {
-	if len(rest) < frameHeaderBytes {
-		return nil
-	}
+// errTerminating is a reply read past as the session ends.
+var errTerminating = errors.New("a reply read past as the session ends")
 
-	h, err := decodeFrameHeader([frameHeaderBytes]byte(rest), limit)
+// terminating reads a reply after Terminate: an Error is the session's
+// end failing; a Notice, a Status or a Pong is read past
+// (errTerminating); any other is out of place.
+func (c *Conn) terminating() error {
+	kind, body, err := readFrame(c.r, c.maxBody, c.compressing)
 	if err != nil {
 		return err
 	}
 
-	// As turborel-client reads it, the body is all that follows the
-	// header, so a second frame after the first fails as bytes left over.
-	rep, err := decodeReply(h.kind, rest[frameHeaderBytes:])
+	rep, err := decodeReply(kind, body)
 	if err != nil {
 		return err
 	}
@@ -246,7 +263,7 @@ func terminated(rest []byte, limit uint32) error {
 	case errorReply:
 		return r.failure
 	case noticeReply, statusReply, pongReply:
-		return nil
+		return errTerminating
 	default:
 		return broken("the server answered Terminate")
 	}

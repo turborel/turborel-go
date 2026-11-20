@@ -45,10 +45,14 @@ if errors.As(err, &failure) {
 ## Which failures end the connection
 
 A failure of the connection itself, SQLCODE -919 of SQLSTATE class 08,
-loses the connection, and it takes no more: a reply malformed or too
-long, a wait run out, the server gone. So does an Error of class 08 but
-08003, and one of class 28 as the connection is made. Any other failure
-is its statement's, and the session goes on.
+loses the connection, and it takes no more: a reply malformed, cut short
+or too long, a wait run out, the server gone. So does an Error of class
+08 but 08003, and one of class 28 as the connection is made. Any other
+failure is its statement's, and the session goes on. A reply whole but
+holding a value the driver cannot take, as damaged JSON or a truth value
+of 2, fails its statement alone with that value's failure, SQLCODE -916
+(SQLSTATE TB916), or -900 (0A000) past turborel's limits; the rest of the
+statement's replies are read past, so the next statement takes its own.
 
 ## Warnings
 

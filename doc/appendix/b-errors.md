@@ -27,10 +27,11 @@ that client has no such case, as every turborel driver does.
 
 | SQLCODE | SQLSTATE | When |
 |---|---|---|
-| -919 | 08006 | A reply malformed or longer than the longest taken; a wait run out; a capability not granted, the connection kept; the server gone; a TLS handshake failed; an export of no query, or whose write fails; input to ReadNative that is not native rows; more than 32 connection or query attributes, or one of a name not 1 to 64 bytes or a value of more than 1024, refused before anything is sent, the connection kept, as the server would fail the connection |
+| -919 | 08006 | A reply malformed, cut short, with bytes after its last field or of a kind no reply has, or longer than the longest taken; a wait run out; a capability not granted, the connection kept; the server gone; a TLS handshake failed; an export of no query, or whose write fails; input to ReadNative that is not native rows; more than 32 connection or query attributes, or one of a name not 1 to 64 bytes or a value of more than 1024, refused before anything is sent, the connection kept, as the server would fail the connection |
 | -919 | 28000 | A password or SCRAM refused over plain TCP before connecting; SCRAM's exchange refused, as of a server not proving it knows the user's verifier |
 | -910 | TB910 | The program's misuse that turborel-client has no case of: a row sent to a copy ended, or a copy finished twice; a delimiter that is not one ASCII character other than a quote or a line break; a TLS target with no TLS configuration, or a target of no kind |
-| -900 | 0A000 | Past turborel's limits: a JSON value nested deeper than 128, or stored in more than 256 MiB, given to NewJSON |
+| -900 | 0A000 | Past turborel's limits: a JSON value nested deeper than 128, or stored in more than 256 MiB, given to NewJSON or JSONOf, or in a reply, which fails its request alone |
+| -916 | TB916 | A reply value the driver cannot take, in a frame read whole: damaged JSON, a truth or units byte other than 0 or 1, a malformed condition in a Complete, value tags 18 and 19. Its request fails, the rest of its replies are read past, and the connection goes on |
 | -301 | 22000 | Input an import cannot read, or that it refuses before SQL does: the cause of an ImportError of the source's input, and a SourceError |
 | -301 | 22003 | A number the protocol cannot carry, given to NewDecimal, NewDecFloat or NewInterval; text that is no UUID |
 | -301 | 22032 | A JSON value that is not one, given to JSONOf |

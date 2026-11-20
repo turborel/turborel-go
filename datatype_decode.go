@@ -112,7 +112,7 @@ func (r *reader) constructedType(tag byte) (DataType, bool) {
 func (r *reader) units() CharUnits {
 	u := CharUnits(r.u8())
 	if u != Characters && u != Octets {
-		r.fail("a length's units are neither characters nor octets")
+		r.failValue(corruptValue("a length's units are neither characters nor octets"))
 	}
 
 	return u

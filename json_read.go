@@ -13,6 +13,9 @@ import (
 	"unicode/utf8"
 )
 
+// errJSONBeyond is a document past turborel's limits.
+var errJSONBeyond = errors.New("past turborel's limits")
+
 // errJSONDamaged is a document whose octets are not of D89's form.
 var errJSONDamaged = errors.New("a JSON value's octets are damaged")
 
@@ -36,7 +39,7 @@ func readJSONDocument(doc []byte) (JSONItem, error) {
 	}
 
 	if len(doc) > maxJSONOctets {
-		return nil, damaged("it is longer than 256 MiB")
+		return nil, fmt.Errorf("%w: its stored form is longer than 256 MiB", errJSONBeyond)
 	}
 
 	j := jsonReader{doc: doc[1:]}
@@ -93,7 +96,9 @@ func (j *jsonReader) long(at int) uint64 {
 // and the octets it takes.
 func (j *jsonReader) node(at, depth int) (JSONItem, int) {
 	if depth > maxJSONNesting {
-		j.fail("arrays and objects nest too deep")
+		if j.err == nil {
+			j.err = fmt.Errorf("%w: arrays and objects nest too deep", errJSONBeyond)
+		}
 
 		return nil, 0
 	}

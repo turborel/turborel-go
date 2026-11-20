@@ -129,10 +129,13 @@ fmt.Println(plain.Ping(ctx))
 ## Ending a connection
 
 `Terminate` ends the session, its transaction as SESSION.COMMIT_AT_END
-says, and waits for the server to close, at most the read timeout, else
-60 seconds; a commit that fails then, as of a deferred constraint not
-satisfied (SQLSTATE 40002), rolls the transaction back and is given.
-`Close` closes the connection at once.
+says, and waits for the server to close, reading past any notice or
+status it sends first; a commit that fails then, as of a deferred
+constraint not satisfied (SQLSTATE 40002), rolls the transaction back and
+is given. On a connection the driver made, or over a stream of the
+program's that takes deadlines, it waits at most the read timeout, else
+60 seconds; over a stream that takes none, as its maker set it. `Close`
+closes the connection at once.
 
 A statement a connection runs is cancelled from another goroutine by
 its `Canceller`, over a connection of its own: `Cancel` gives up after

@@ -55,6 +55,10 @@ type Conn struct {
 	position      *uint64
 	attributes    []Attribute
 	nextStatement uint32
+	// answeredByOne says the request under way is answered by one reply,
+	// after any Notice and Status, so a value the driver cannot take reads
+	// nothing past it.
+	answeredByOne bool
 	// copying is the copy under way, if one is.
 	copying *Copy
 	lost    *Error

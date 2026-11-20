@@ -32,10 +32,14 @@ func FuzzDecodeReply(f *testing.F) {
 		}
 
 		var failure *Error
+		if !errors.As(err, &failure) {
+			t.Fatalf("err = %v, want the driver's failure", err)
+		}
 
-		connection := errors.As(err, &failure) && failure.SQLCode == sqlcodeConnection
-		if !connection || failure.SQLState != sqlstateConnectionFailure {
-			t.Fatalf("err = %v, want a connection failure", err)
+		switch failure.SQLState {
+		case sqlstateConnectionFailure, sqlstateCorrupt, sqlstateFeatureNotSupported:
+		default:
+			t.Fatalf("err = %v, want a connection failure or a value's", err)
 		}
 	})
 }

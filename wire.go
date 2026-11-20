@@ -174,6 +174,15 @@ func (r *reader) fail(why string) {
 	}
 }
 
+// failValue records a value the reader cannot take, within a frame read
+// whole: the value's own failure, of no class 08, which fails its request
+// alone [PROTOCOL Values and fields].
+func (r *reader) failValue(failure *Error) {
+	if r.err == nil {
+		r.err = failure
+	}
+}
+
 // take gives the next n bytes, or fails if the body has fewer.
 func (r *reader) take(n int) []byte {
 	if r.err != nil {

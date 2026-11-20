@@ -154,7 +154,8 @@ func TestJSONDirectorySorted(t *testing.T) {
 // the root, a node past the document, a tag no node has, a string not
 // UTF-8, a datetime's moment or zoned flag out of range, an offset or a
 // size not the elements', a directory not sorted or naming no member, a
-// count past the document, and nesting past 128 each fail.
+// count past the document each fail (SQLSTATE 22032); nesting past 128
+// is past turborel's limits (0A000).
 func TestJSONDamaged(t *testing.T) {
 	t.Parallel()
 
@@ -194,7 +195,6 @@ func TestJSONDamaged(t *testing.T) {
 		"unsorted":      unsorted,
 		"not a member":  notMember,
 		"count past":    {1, 10, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0, 0, 0},
-		"deep":          deep,
 		"DECFLOAT":      append(append([]byte{1, 6, 1}, make([]byte, 15)...), 0xFF, 0xFF, 0xFF, 0x7F),
 	}
 	for name, doc := range cases {
@@ -204,6 +204,9 @@ func TestJSONDamaged(t *testing.T) {
 			assertInvalidJSON(t, err)
 		}
 	}
+
+	_, err := JSONOf(deep)
+	assertFailure(t, err, sqlcodeBeyond, sqlstateFeatureNotSupported, "arrays and objects nest too deep")
 }
 
 // TestJSONDecFloatRounded reads a DECFLOAT node of more than 34 digits

@@ -111,7 +111,8 @@ the connection lost.
 | 40002 | A commit, of autocommit, that failed |
 | TB920 | SQLCODE -920: the statement was cancelled |
 | 08006 | SQLCODE -919, before anything is sent, the connection kept: query attributes past the bounds a server takes |
-| 08006 | SQLCODE -919: a capability not granted, a reply out of its place, or the connection lost |
+| 08006 | SQLCODE -919: a capability not granted, a reply out of its place or malformed, or the connection lost |
+| TB916 | SQLCODE -916: a reply holding a value the driver cannot take, the rest of the statement's replies read past, the connection kept; past turborel's limits, -900 (0A000) |
 
 ## EXAMPLES
 
