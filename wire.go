@@ -86,6 +86,24 @@ func count32(n int) uint32 {
 	return uint32(n)
 }
 
+// len64 is a length as a uint64; a negative one, which no length is, 0.
+func len64(n int) uint64 {
+	if n < 0 {
+		return 0
+	}
+
+	return uint64(n)
+}
+
+// clampInt is u as an int, at most the greatest int.
+func clampInt(u uint64) int {
+	if u > math.MaxInt {
+		return math.MaxInt
+	}
+
+	return int(u)
+}
+
 // writer appends a message's fields.
 type writer struct {
 	buf []byte

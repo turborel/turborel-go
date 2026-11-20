@@ -54,7 +54,7 @@ its source type. Types and values nest at most 16 deep.
 | 8, 9, 11 | date, time, timestamp | `Datetime` | `Moment`; `UTC`, microseconds in UTC; `Zone`, the displacement in minutes; `Zoned`; `Precision`; `Time()` gives a `time.Time` |
 | 13 | interval | `Interval` | `Qualifier`; `Units()`, months or microseconds, an i128 |
 | 14 | truth value | `Bool` | unknown is `Null` |
-| 15 | decimal floating point | `DecFloat` | `Coefficient()`, at most 34 digits, no trailing zero; `Exponent()`, the leading digit's exponent within −6143 and 6144 |
+| 15 | decimal floating point | `DecFloat` | `Coefficient()`, at most 34 digits, no trailing zero; `Exponent()`, its power of ten, the leading digit's within −6143 and 6144 |
 | 16 | array | `Array` | |
 | 17 | row | `Row` | |
 | 20 | large object, whole | `LOB` | `Kind`, `CharacterLOB` or `BinaryLOB`; `Octets`, UTF-8 of a character one |

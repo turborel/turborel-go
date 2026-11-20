@@ -36,7 +36,9 @@ protocol carries and gives its units as a `*big.Int`; its `String` writes
 it as SQL does, as `-12.50`. A DECFLOAT is a `DecFloat`, kept in
 Turborel's one form; `NewDecFloat` rounds a coefficient of more than 34
 digits half to even, as Turborel does, and a JSON value's DECFLOAT is
-read the same way. A datetime is a `Datetime`, its instant in UTC
+read the same way; its `String` writes it as Turborel does, plain, as
+`1.5`, if its leading digit's exponent is from -6 to 33, else as
+`1.5E-7`. A datetime is a `Datetime`, its instant in UTC
 microseconds from 0001-01-01 with its displacement, whose `Time` gives
 a `time.Time`. A JSON value is a `JSON`, its stored form checked whole,
 whose `Item` gives its SQL/JSON item. A UUID is a `UUID`, whose `String`
@@ -44,8 +46,10 @@ gives its text.
 
 The values a program gets come from the server's replies, and the
 values it sends are written as the protocol says, the reply checked as
-Turborel's own client checks it. This page is completed at milestone
-M3, when statements give and take these values.
+Turborel's own client checks it. A CLOB or BLOB comes whole, a `LOB`, or
+by its locator, a `Locator` ([Large Objects](24-large-objects.md)).
+An interval's `Qualifier` has a `String` that writes it as SQL does, as
+`DAY(2) TO SECOND(6)`.
 
 ## ERRORS
 

@@ -55,7 +55,9 @@ type Conn struct {
 	position      *uint64
 	attributes    []Attribute
 	nextStatement uint32
-	lost          *Error
+	// copying is the copy under way, if one is.
+	copying *Copy
+	lost    *Error
 }
 
 // Connect connects to the server at address, host and port, over TCP as

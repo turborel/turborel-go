@@ -44,6 +44,12 @@ func (c *Conn) send(req request) error {
 		return c.lost
 	}
 
+	c.leaveCopy(req)
+
+	if c.lost != nil {
+		return c.lost
+	}
+
 	frames := encodeRequest(req)
 	if c.compressing {
 		frames = compressFrames(frames, c.compressFrom)

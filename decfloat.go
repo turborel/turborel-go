@@ -9,6 +9,8 @@ package turborel
 import (
 	"errors"
 	"math/big"
+	"strconv"
+	"strings"
 )
 
 // The limits of a DECFLOAT value, as turborel's: decimal128's.
@@ -126,9 +128,52 @@ func (d DecFloat) Exponent() int32 {
 	return d.exponent
 }
 
-// String gives the number as its coefficient and exponent, as 15E-1.
+// String gives the number as turborel writes it: plain, as 1.5, if zero
+// or its adjusted exponent is from -6 to 33; else its digits with a point
+// after the first, then E and its adjusted exponent, as 1.5E-7.
 func (d DecFloat) String() string {
-	return d.Coefficient().String() + "E" + big.NewInt(int64(d.exponent)).String()
+	digits := new(big.Int).Abs(d.Coefficient()).String()
+
+	adjusted := int64(d.exponent) + int64(len(digits)) - 1
+	if d.coefficient.isZero() || (adjusted >= plainLeast && adjusted < maxDecFloatDigits) {
+		return d.numeral()
+	}
+
+	sign := ""
+	if d.Coefficient().Sign() < 0 {
+		sign = "-"
+	}
+
+	lead, rest := digits[:1], digits[1:]
+	if rest != "" {
+		rest = "." + rest
+	}
+
+	return sign + lead + rest + "E" + strconv.FormatInt(adjusted, decimalRadix)
+}
+
+// plainLeast is the least adjusted exponent String writes plain.
+const plainLeast = -6
+
+// numeral gives the number plain, without an exponent, as 0.00015 or
+// 1500.
+func (d DecFloat) numeral() string {
+	sign := ""
+	if d.Coefficient().Sign() < 0 {
+		sign = "-"
+	}
+
+	digits := new(big.Int).Abs(d.Coefficient()).String()
+	if d.exponent >= 0 {
+		return sign + digits + strings.Repeat("0", int(d.exponent))
+	}
+
+	places := -int(d.exponent)
+	if len(digits) <= places {
+		digits = strings.Repeat("0", places+1-len(digits)) + digits
+	}
+
+	return sign + digits[:len(digits)-places] + "." + digits[len(digits)-places:]
 }
 
 // check says whether d is in DECFLOAT's one form.

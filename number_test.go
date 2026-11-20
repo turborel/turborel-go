@@ -99,7 +99,7 @@ func TestDecFloatForm(t *testing.T) {
 	t.Parallel()
 
 	d, err := NewDecFloat(big.NewInt(1500), -3)
-	if err != nil || d.Coefficient().Int64() != 15 || d.Exponent() != -1 || d.String() != "15E-1" {
+	if err != nil || d.Coefficient().Int64() != 15 || d.Exponent() != -1 || d.String() != "1.5" {
 		t.Errorf("1500E-3 = %v, %v", d, err)
 	}
 

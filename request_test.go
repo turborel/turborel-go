@@ -144,7 +144,7 @@ func TestRequestsFields(t *testing.T) {
 	t.Parallel()
 
 	key := [keyBytes]byte{1, 2, 15: 9}
-	niklaus := copyDataRequest{rows: []Row{{DecimalOf(7, 0), Char("Niklaus")}, {Null{}, Null{}}}}
+	niklaus := copyDataOf([]Row{{DecimalOf(7, 0), Char("Niklaus")}, {Null{}, Null{}}})
 	cases := []struct {
 		req  request
 		want []byte

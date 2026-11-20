@@ -267,18 +267,28 @@ func (q copyInRequest) encode(w *writer) {
 	})
 }
 
-// copyDataRequest sends rows of the copy [PROTOCOL CopyData 'J'].
+// copyDataRequest sends rows of the copy [PROTOCOL CopyData 'J']: their
+// count, and the rows, each encoded as it was sent.
 type copyDataRequest struct {
-	rows []Row
+	count uint32
+	rows  []byte
+}
+
+// copyDataOf gives the CopyData of rows.
+func copyDataOf(rows []Row) copyDataRequest {
+	var w writer
+
+	for _, row := range rows {
+		encodeValues(&w, row)
+	}
+
+	return copyDataRequest{count: count32(len(rows)), rows: w.buf}
 }
 
 func (q copyDataRequest) encode(w *writer) {
 	w.frame(kindCopyData, func() {
-		w.u32(count32(len(q.rows)))
-
-		for _, row := range q.rows {
-			encodeValues(w, row)
-		}
+		w.u32(q.count)
+		w.buf = append(w.buf, q.rows...)
 	})
 }
 
