@@ -102,7 +102,7 @@ func canonicalDecFloat(c *big.Int, e int64) (DecFloat, error) {
 		return DecFloat{}, outOfRange(errDecFloatExponent.Error())
 	}
 
-	d := DecFloat{coefficient: bits, exponent: int32(e)} //nolint:gosec // G115: checked to be within an int32 above.
+	d := DecFloat{coefficient: bits, exponent: int32(e)}
 	if err := d.check(); err != nil {
 		return DecFloat{}, outOfRange(err.Error())
 	}

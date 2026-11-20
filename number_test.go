@@ -151,7 +151,8 @@ func TestDecFloatRounded(t *testing.T) {
 	for _, c := range cases {
 		d, err := NewDecFloat(bigOf(t, c.coefficient), 0)
 		if err != nil || d.Coefficient().String() != c.want || d.Exponent() != c.exponent {
-			t.Errorf("%s rounded to %vE%d, %v; want %sE%d", c.coefficient, d.Coefficient(), d.Exponent(), err, c.want, c.exponent)
+			t.Errorf("%s rounded to %vE%d, %v; want %sE%d",
+				c.coefficient, d.Coefficient(), d.Exponent(), err, c.want, c.exponent)
 		}
 	}
 }
