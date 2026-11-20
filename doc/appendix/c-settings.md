@@ -30,4 +30,19 @@ name each, as `OptionTLSMode`.
 
 A word, a number or a path that cannot be read is refused with SQLCODE
 -919, SQLSTATE 08001. A service file's section cannot set `service` or
-`service_file`. The settings of a pool are listed at milestone M6.
+`service_file`.
+
+## A pool's settings
+
+A pool's settings are the fields of its `PoolConfig`, which
+`DefaultPoolConfig` gives.
+
+| Field | What it says | Default |
+|---|---|---|
+| `Max` | The most connections made at once, handed out and idle | 10 |
+| `MaxIdle` | The most kept idle | 10 |
+| `IdleTimeout` | How long one may stay idle; 0, as long as it lives | 10 minutes |
+| `MaxLifetime` | How long one lives from when it was made; 0, without limit | 1 hour |
+| `Wait` | How long `Get` waits for one to come back | 30 seconds |
+| `Check` | Whether an idle connection is checked to answer before it is handed out | yes |
+| `Reset` | Statements run, after the pool's own, as each connection comes back | none |

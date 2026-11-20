@@ -46,11 +46,16 @@ func (c *Conn) send(req request) error {
 
 	c.leaveCopy(req)
 
+	return c.sendEncoded(encodeRequest(req))
+}
+
+// sendEncoded writes requests already framed, compressed past the
+// threshold once compression is granted, within the connection's wait.
+func (c *Conn) sendEncoded(frames []byte) error {
 	if c.lost != nil {
 		return c.lost
 	}
 
-	frames := encodeRequest(req)
 	if c.compressing {
 		frames = compressFrames(frames, c.compressFrom)
 	}

@@ -3,6 +3,9 @@ package turborel
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
@@ -315,5 +318,41 @@ func TestSettingsRefuseProof(t *testing.T) {
 	presenting.TLS.Key = "client.key"
 	if _, err := presenting.Connect(ctx); err == nil || !strings.Contains(err.Error(), "cannot read client.pem") {
 		t.Errorf("a certificate not there gave %v", err)
+	}
+}
+
+// TestVerifyChain checks a server's chain whatever its name.
+//
+// Verifies: [CLIENT TLS by mode] verify-ca takes a certificate an
+// authority trusted signed, of any name, and refuses a server that
+// presents none or one no authority trusted signed.
+func TestVerifyChain(t *testing.T) {
+	t.Parallel()
+
+	block, _ := pem.Decode(testCertificatePEM(t))
+
+	certificate, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	roots := x509.NewCertPool()
+	roots.AddCert(certificate)
+
+	state := tls.ConnectionState{PeerCertificates: []*x509.Certificate{certificate, certificate}}
+	if err := verifyChain(state, roots); err != nil {
+		t.Errorf("a trusted chain: %v", err)
+	}
+
+	if err := verifyChain(state, x509.NewCertPool()); err == nil {
+		t.Error("an untrusted chain was taken")
+	}
+
+	if err := verifyChain(tls.ConnectionState{}, roots); !errors.Is(err, errNoCertificate) {
+		t.Errorf("no certificate gave %v", err)
+	}
+
+	if _, err := Resolve(optionsOf(t, OptionUser, "u", OptionHost, "h")); err != nil {
+		t.Errorf("Resolve: %v", err)
 	}
 }

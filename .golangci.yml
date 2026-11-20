@@ -114,7 +114,7 @@ linters:
         - stdlib
         - empty
         - generic
-        - github.com/turborel/turborel-go\.(Value|DataType|JSONItem|XMLNode|LargeObject|Mechanism|reply|stream)
+        - github.com/turborel/turborel-go\.(Value|DataType|JSONItem|XMLNode|LargeObject|Mechanism|reply|request|stream)
     errcheck:
       check-type-assertions: true
       check-blank: false
