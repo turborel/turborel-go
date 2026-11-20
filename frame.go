@@ -7,6 +7,7 @@ package turborel
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 )
 
 const (
@@ -48,4 +49,37 @@ func decodeFrameHeader(header [frameHeaderBytes]byte, limit uint32) (frameHeader
 	}
 
 	return decoded, nil
+}
+
+// readFrame reads one frame from src: its header, then a body of at most
+// limit bytes, nothing held for a longer one [PROTOCOL Frames]. A frame
+// of kind `z` is inflated where compressed says `compression` was
+// granted, and fails the connection where it was not [PROTOCOL
+// Compressed frames]. A body cut short fails the connection.
+func readFrame(src io.Reader, limit uint32, compressed bool) (byte, []byte, error) {
+	var header [frameHeaderBytes]byte
+
+	if _, err := io.ReadFull(src, header[:]); err != nil {
+		return 0, nil, broken("a message is cut short: " + err.Error())
+	}
+
+	h, err := decodeFrameHeader(header, limit)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	body := make([]byte, h.length)
+	if _, err := io.ReadFull(src, body); err != nil {
+		return 0, nil, broken("a message is cut short: " + err.Error())
+	}
+
+	if h.kind != kindCompressed {
+		return h.kind, body, nil
+	}
+
+	if !compressed {
+		return 0, nil, broken("a compressed frame came, compression not granted")
+	}
+
+	return decompress(body, limit)
 }
