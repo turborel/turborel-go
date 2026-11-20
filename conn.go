@@ -94,11 +94,17 @@ func ConnectTo(ctx context.Context, target Target, user string, mechanism Mechan
 		return nil, err
 	}
 
-	if binder, ok := mechanism.(BindingMechanism); ok && channel != nil {
+	return connectOpened(ctx, target, s, channel, login{user: user, mechanism: mechanism, config: config})
+}
+
+// connectOpened logs in over s, reached at target, a binding mechanism
+// bound to its TLS channel first.
+func connectOpened(ctx context.Context, target Target, s stream, channel *TLSChannel, l login) (*Conn, error) {
+	if binder, ok := l.mechanism.(BindingMechanism); ok && channel != nil {
 		binder.Bind(*channel)
 	}
 
-	c, err := logIn(ctx, s, login{user: user, mechanism: mechanism, config: config})
+	c, err := logIn(ctx, s, l)
 	if err != nil {
 		return nil, err
 	}
