@@ -67,7 +67,8 @@ func statusOrder() []string {
 // before its reply, the server sends one of each name in the page's
 // table, in its order, then the session's own settings, SESSION.TIME_ZONE
 // and TRANSACTION.ISOLATION among them; after a statement only what it
-// changed, none of a statement that changed nothing.
+// changed, none of a statement that changed nothing, the first after the
+// login too.
 func TestLiveStatusOrder(t *testing.T) {
 	t.Parallel()
 
@@ -89,13 +90,12 @@ func TestLiveStatusOrder(t *testing.T) {
 	t.Cleanup(func() { _ = c.Close() })
 	assertStatusOrder(t, r.statuses(t))
 
-	mustRun(t, c, "CREATE SCHEMA STATUS_ORDER")
-	mustRun(t, c, "COMMIT")
-	r.statuses(t)
-	mustRun(t, c, "VALUES 1")
+	for _, sql := range []string{"VALUES 1", "CREATE SCHEMA STATUS_ORDER", "COMMIT", "VALUES 1"} {
+		mustRun(t, c, sql)
 
-	if names := r.statuses(t); len(names) != 0 {
-		t.Errorf("a statement that changed nothing told %v", names)
+		if names := r.statuses(t); len(names) != 0 && sql == "VALUES 1" {
+			t.Errorf("%s, which changed nothing, told %v", sql, names)
+		}
 	}
 
 	mustRun(t, c, "SET SCHEMA 'STATUS_ORDER'")
