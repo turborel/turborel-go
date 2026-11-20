@@ -268,13 +268,18 @@ func TestReplicaBehind(t *testing.T) {
 //
 // Verifies: [PROTOCOL ChangeUser 'U'] ChangeUser sends the user, the
 // mechanism and its first bytes, then answers each Challenge as Hello's
-// exchange does; Ready renews the authorization and the cancel key; a
-// mechanism that asks refuses a server that did not prove itself.
+// exchange does; Ready renews the authorization and the cancel key, and
+// the session, with no transaction active, as Reset renews it [CLIENT
+// Controlling the session] (RULES.md D8); a mechanism that asks refuses a
+// server that did not prove itself.
 func TestChangeUserSteps(t *testing.T) {
 	t.Parallel()
 
 	mechanism := &scripted{answers: [][]byte{[]byte("a")}}
 	c := openGranted(t, []string{CapabilityChangeUser}, func(f *fake) {
+		f.request()
+		f.complete("00000", true)
+
 		if kind, _ := f.request(); kind != kindChangeUser {
 			t.Errorf("ChangeUser came as %c", kind)
 		}
@@ -289,9 +294,13 @@ func TestChangeUserSteps(t *testing.T) {
 		})
 	})
 
+	if _, err := c.Query(context.Background(), "INSERT INTO T VALUES (1)"); err != nil || !c.InTransaction() {
+		t.Fatalf("the statement left no transaction active: %v", err)
+	}
+
 	err := c.ChangeUser(context.Background(), "BOB", mechanism)
-	if err != nil || c.Authorization() != "BOB" || c.key[0] != 1 {
-		t.Errorf("ChangeUser: %v, %q", err, c.Authorization())
+	if err != nil || c.Authorization() != "BOB" || c.key[0] != 1 || c.InTransaction() {
+		t.Errorf("ChangeUser: %v, %q, active %v", err, c.Authorization(), c.InTransaction())
 	}
 
 	refusing := openGranted(t, []string{CapabilityChangeUser}, func(f *fake) {

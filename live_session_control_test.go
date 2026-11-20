@@ -142,9 +142,9 @@ func TestLiveReset(t *testing.T) {
 // Verifies: [PROTOCOL ChangeUser 'U'] ChangeUser authenticates the
 // connection again, with the same Challenge and Answer steps as Hello's,
 // SCRAM's here; accepted, the session is renewed under the new user and a
-// new cancel key, Ready keeping the capabilities; refused, the connection
-// fails [CLIENT Controlling the session], change-user granted [PROTOCOL
-// Capabilities].
+// new cancel key, Ready keeping the capabilities, no transaction active,
+// as after Reset (RULES.md D8); refused, the connection fails [CLIENT
+// Controlling the session], change-user granted [PROTOCOL Capabilities].
 func TestLiveChangeUser(t *testing.T) {
 	t.Parallel()
 
@@ -154,12 +154,18 @@ func TestLiveChangeUser(t *testing.T) {
 	c := liveConnect(t, liveTLS(t, 0, false), Trust{}, nil)
 	key := c.key
 
+	mustRun(t, c, "VALUES 1")
+
+	if !c.InTransaction() {
+		t.Fatal("the query left no transaction active")
+	}
+
 	if err := c.ChangeUser(context.Background(), "CHANGED", NewScram("changed's")); err != nil {
 		t.Fatal(err)
 	}
 
-	if c.Authorization() != "CHANGED" || c.key == key || len(c.GrantedCapabilities()) == 0 {
-		t.Errorf("authorization %q, key renewed %v", c.Authorization(), c.key != key)
+	if c.Authorization() != "CHANGED" || c.key == key || len(c.GrantedCapabilities()) == 0 || c.InTransaction() {
+		t.Errorf("authorization %q, key renewed %v, active %v", c.Authorization(), c.key != key, c.InTransaction())
 	}
 
 	err := c.ChangeUser(context.Background(), testserver.Owner, NewScram("wrong"))

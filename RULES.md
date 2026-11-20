@@ -430,6 +430,14 @@ rule here, the rule is kept:
 - Tests are in the package itself, not in a `_test` package, so the
   codec's unexported functions are tested directly (R-TEST-1, D13).
 
+The driver follows turborel-client's code, but where that code
+contradicts what The Native Protocol or turborel's docs say outright, it
+follows the documented behaviour, and the departure is listed here:
+
+- After ChangeUser, no transaction is active: the spec renews the
+  session as Reset does. turborel-client's `change_user` keeps its flag
+  of a transaction active.
+
 ### This driver's own
 
 #### D9. One package, `turborel`
