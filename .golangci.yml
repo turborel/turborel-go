@@ -105,6 +105,11 @@ linters:
         - name: confusing-naming
     gosec:
       excludes: []
+    # A value type's Scan sets it, as sql.Scanner asks, by a pointer
+    # receiver; its other methods read it, by a value.
+    recvcheck:
+      exclusions:
+        - "*.Scan"
     # The driver's sum types are sealed interfaces, returned as such:
     # Value, DataType, JSONItem and reply; and stream, what a connection
     # reads and writes.

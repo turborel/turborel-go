@@ -858,13 +858,13 @@ later decision of RULES.md.
 
 | ID | Row | Citation | Status |
 |---|---|---|---|
-| S-API-1 | The `database/sql/driver` driver, registered as `turborel`, opened by `sql.Open` with a `turborel://` URI | `[DESIGN] D2` | not yet |
-| S-API-2 | `driver.Connector` and `driver.DriverContext`, so `sql.OpenDB` takes settings made in Go | `[DESIGN] D2` | not yet |
-| S-API-3 | Connections: `driver.Conn`, `ConnBeginTx`, `ConnPrepareContext`, `ExecerContext`, `QueryerContext`, `Pinger`, `SessionResetter` and `Validator` | `[DESIGN] D2` | not yet |
-| S-API-4 | Statements and rows: `driver.StmtExecContext`, `StmtQueryContext`, `driver.Rows` and its column type interfaces | `[DESIGN] D2` | not yet |
-| S-API-5 | Parameters by `driver.NamedValueChecker`, every value type of the driver taken | `[DESIGN] D2` | not yet |
-| S-API-6 | Transactions by `driver.Tx`, isolation levels and read-only from `sql.TxOptions` | `[DESIGN] D2` | not yet |
-| S-API-7 | A `context` canceled while a statement runs, cancelled by the protocol's Cancel, its failure wrapping the context's error | `[DESIGN] D2` | not yet |
-| S-API-8 | `sql.Scanner` and `driver.Valuer` for each of the driver's value types | `[DESIGN] D2` | not yet |
-| S-API-9 | The native API beside it, every feature of the rows above | `[DESIGN] D2` | not yet |
-| S-API-10 | Every failure an `*Error`, found by `errors.As` | `[DESIGN] D2` | not yet |
+| S-API-1 | The `database/sql/driver` driver, registered as `turborel`, opened by `sql.Open` with a `turborel://` URI | `[DESIGN] D2` | done |
+| S-API-2 | `driver.Connector` and `driver.DriverContext`, so `sql.OpenDB` takes settings made in Go | `[DESIGN] D2` | done |
+| S-API-3 | Connections: `driver.Conn`, `ConnBeginTx`, `ConnPrepareContext`, `ExecerContext`, `QueryerContext`, `Pinger`, `SessionResetter` and `Validator` | `[DESIGN] D2` | done |
+| S-API-4 | Statements and rows: `driver.StmtExecContext`, `StmtQueryContext`, `driver.Rows` and its column type interfaces | `[DESIGN] D2` | done |
+| S-API-5 | Parameters by `driver.NamedValueChecker`, every value type of the driver taken | `[DESIGN] D2` | done |
+| S-API-6 | Transactions by `driver.Tx`, isolation levels and read-only from `sql.TxOptions` | `[DESIGN] D2` | done |
+| S-API-7 | A `context` canceled while a statement runs, cancelled by the protocol's Cancel, its failure wrapping the context's error | `[DESIGN] D2` | done |
+| S-API-8 | `sql.Scanner` and `driver.Valuer` for each of the driver's value types | `[DESIGN] D2` | done |
+| S-API-9 | The native API beside it, every feature of the rows above | `[DESIGN] D2` | done |
+| S-API-10 | Every failure an `*Error`, found by `errors.As` | `[DESIGN] D2` | done |

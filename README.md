@@ -29,9 +29,9 @@ large objects, bulk copy, import and export, settings from a URI, the
 environment and service and password files, several servers, pipelines
 and pools.
 
-The driver is built in milestones, M0 to M8, and does not connect to a
-server yet. [CONFORMANCE.md](CONFORMANCE.md) shows what is done, row by
-row, and [TODO.md](TODO.md) what is open.
+The driver is built in milestones, M0 to M8.
+[CONFORMANCE.md](CONFORMANCE.md) shows what is done, row by row, and
+[TODO.md](TODO.md) what is open.
 
 ## Requirements
 
@@ -61,10 +61,6 @@ go mod edit -require=github.com/turborel/turborel-go@v0.0.0 -replace=github.com/
 ```
 
 ## A first query
-
-This is what the standard API will be once milestone M7 builds it and
-M8's audit checks it. None of it runs yet, and its names may change
-until then.
 
 ```go
 import (

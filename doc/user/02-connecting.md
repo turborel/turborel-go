@@ -4,8 +4,9 @@
 
 A program connects to a server, `turboreld`, as one of its users, and
 the connection is then a session of the server's. This chapter tells
-how, with the native API; the standard API's way of connecting comes at
-milestone M7.
+how, with the native API; through `database/sql`, a program opens the
+driver by a `turborel://` URI ([Settings](09-settings.md)), as the [API
+Reference](../client/01-api-database-sql.md) shows.
 
 ## Where the server is
 
