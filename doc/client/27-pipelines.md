@@ -51,3 +51,15 @@ copy first.
 | any | Under `OnErrorSkip`, the failure of a statement undoing the requests after a failed one |
 
 A request's own failure is its `Piped.Failure`, not `Run`'s.
+
+## EXAMPLES
+
+The examples of [Pipelines and Pools](../user/08-pipelines-and-pools.md).
+
+## STANDARD
+
+[PROTOCOL Requests] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Pipelines] of [Settings, Pipelines and Pools](https://github.com/turborel/turborel/blob/main/doc/client/02-library-connections.md).
+
+## SEE ALSO
+
+[Statements and Cursors](22-statements.md), [Pools](28-pools.md).

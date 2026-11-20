@@ -58,3 +58,15 @@ context they were made with is done.
 
 A `LOBReader` whose server sends less than the value's length fails with
 an error saying so.
+
+## EXAMPLES
+
+The examples of [Large Objects](../user/06-large-objects.md).
+
+## STANDARD
+
+[PROTOCOL Lob 'L'] and [PROTOCOL Values] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Large objects] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
+
+## SEE ALSO
+
+[Values](23-values.md), [Copy, Import and Export](25-copy.md).

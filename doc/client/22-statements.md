@@ -113,3 +113,14 @@ the connection lost.
 | 08006 | SQLCODE -919, before anything is sent, the connection kept: query attributes past the bounds a server takes |
 | 08006 | SQLCODE -919: a capability not granted, a reply out of its place, or the connection lost |
 
+## EXAMPLES
+
+The examples of [Running Queries](../user/03-queries.md), [Prepared Statements](../user/04-prepared-statements.md) and [Transactions](../user/05-transactions.md).
+
+## STANDARD
+
+[PROTOCOL Query 'Q'], [PROTOCOL Prepare 'P'], [PROTOCOL Execute 'E'], [PROTOCOL Fetch 'F'], [PROTOCOL Close 'C'], [PROTOCOL Deallocate 'D'], [PROTOCOL Describe 'Y'], [PROTOCOL Complete 'K'] and [PROTOCOL The tail] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Running statements], [CLIENT Prepared statements] and [CLIENT Controlling the session] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
+
+## SEE ALSO
+
+[Values](23-values.md), [Pipelines](27-pipelines.md), [Errors](30-errors.md).

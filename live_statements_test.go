@@ -38,7 +38,8 @@ func mustRun(t *testing.T, c *Conn, sql string) *Outcome {
 // its Rows and a Complete; another statement by a Complete; a query of no
 // row completes with SQLCODE 100 and SQLSTATE 02000; a failure by an
 // Error, its SQLCODE, SQLSTATE, message, rule and position apart
-// [CLIENT Running statements].
+// [CLIENT Running statements]
+// [PROTOCOL Description 'D'] [PROTOCOL Rows 'B'].
 func TestLiveQuery(t *testing.T) {
 	t.Parallel()
 
@@ -283,7 +284,8 @@ func TestLivePrepared(t *testing.T) {
 // are open at once, one already open fails (SQLSTATE 24000), as do a
 // fetch or close of one not open, and a statement whose cursor is open is
 // not replaced or deallocated [CLIENT Controlling the session]
-// [PROTOCOL Capabilities].
+// [PROTOCOL Capabilities]
+// [PROTOCOL Suspended 'S'].
 func TestLiveCursors(t *testing.T) {
 	t.Parallel()
 

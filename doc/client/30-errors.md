@@ -61,3 +61,15 @@ statement or one of the server's own, is handed to the handler
 
 [Appendix B](../appendix/b-errors.md) lists the SQLSTATE classes, and the
 failures the driver finds itself.
+
+## EXAMPLES
+
+The examples of [Errors and Diagnostics](../user/10-errors.md).
+
+## STANDARD
+
+[PROTOCOL Errors and notices], [PROTOCOL Error 'E'] and [PROTOCOL Composite fields] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT What the server tells] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
+
+## SEE ALSO
+
+[Appendix B](../appendix/b-errors.md).

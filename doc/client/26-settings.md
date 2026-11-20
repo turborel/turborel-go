@@ -92,3 +92,15 @@ with no INFORMATION_SCHEMA.REPLICAS taking changes.
 | 08006 | SQLCODE -919: a TLS file that cannot be read; verify-ca or verify-full with no authority trusted; a client certificate with no key |
 
 Of one address tried, its own failure is given.
+
+## EXAMPLES
+
+The examples of [Settings](../user/09-settings.md).
+
+## STANDARD
+
+[CLIENT Where settings come from], [CLIENT The connection URI], [CLIENT The service file], [CLIENT The password file], [CLIENT Several servers], [CLIENT TLS by mode] and [CLIENT The SCRAM key cache] of [Settings, Pipelines and Pools](https://github.com/turborel/turborel/blob/main/doc/client/02-library-connections.md).
+
+## SEE ALSO
+
+[Appendix C](../appendix/c-settings.md), [Connections](21-connections.md), [Pools](28-pools.md).

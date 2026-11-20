@@ -57,3 +57,15 @@ if the current one was. `Terminate` ends every one left.
 
 A connection that fails to end is a warning: DISCONNECT completes with
 SQLSTATE 01002.
+
+## EXAMPLES
+
+The examples of [Pipelines and Pools](../user/08-pipelines-and-pools.md).
+
+## STANDARD
+
+[CLIENT The SQL-agent] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md); ISO/IEC 9075:1992 §15, the connection statements.
+
+## SEE ALSO
+
+[Connections](21-connections.md), [Settings](26-settings.md).

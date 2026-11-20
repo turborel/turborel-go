@@ -55,7 +55,8 @@ func (f *fake) copies(begun *[]string, counts *[]uint32) {
 // rest at CopyEnd [PROTOCOL CopyData 'J'], whose Complete counts the
 // rows inserted [PROTOCOL CopyEnd 'N']; until then only CopyData, CopyEnd
 // and Ping are sent, Ping answered [PROTOCOL Ping 'G']; a copy needs copy
-// granted [CLIENT Copying and exporting].
+// granted [CLIENT Copying and exporting]
+// [PROTOCOL Pong 'G'].
 func TestCopyFlow(t *testing.T) {
 	t.Parallel()
 

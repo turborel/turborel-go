@@ -95,3 +95,15 @@ takes another connection.
 |---|---|
 | 08001 | SQLCODE -919: `sql.Open` of a URI that is no `turborel://` URI, or no server kept |
 | TB910 | SQLCODE -910: an isolation level none of SQL's; a named argument; a Go value of no type the driver sends; a value scanned into a type it is not; a result of no identity value, or of no rows counted |
+
+## EXAMPLES
+
+The examples of [Installing](../user/01-installing.md).
+
+## STANDARD
+
+The Go standard library's [database/sql/driver](https://pkg.go.dev/database/sql/driver) interfaces; the driver's own decision RULES.md D2.
+
+## SEE ALSO
+
+[Settings](26-settings.md), [Connections](21-connections.md), [Values](23-values.md), [Errors](30-errors.md).

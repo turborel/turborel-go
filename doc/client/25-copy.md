@@ -125,3 +125,15 @@ SQLCODE -301 and SQLSTATE 22000; the rows committed, and those of the
 batch rolled back. A source's failure is a `*SourceError`, its message
 as turborel-client gives it, as `[DESIGN] the record is longer than
 1024 bytes`, which `Unwrap` gives as an `*Error` of SQLSTATE 22000.
+
+## EXAMPLES
+
+The examples of [Copying, Importing and Exporting](../user/07-copying.md).
+
+## STANDARD
+
+[PROTOCOL CopyIn 'I'], [PROTOCOL CopyData 'J'] and [PROTOCOL CopyEnd 'N'] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Copying and exporting] and [CLIENT Importing] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md); RFC 4180.
+
+## SEE ALSO
+
+[Large Objects](24-large-objects.md), [Statements and Cursors](22-statements.md).

@@ -67,3 +67,15 @@ shorter. `Release` again does nothing.
 |---|---|
 | 08001 | SQLCODE -919: no connection came back within `Wait`, or the wait was given up as the context was done, which the failure wraps |
 | any | The source's failure to make a connection |
+
+## EXAMPLES
+
+The examples of [Pipelines and Pools](../user/08-pipelines-and-pools.md).
+
+## STANDARD
+
+[CLIENT Pools] of [Settings, Pipelines and Pools](https://github.com/turborel/turborel/blob/main/doc/client/02-library-connections.md).
+
+## SEE ALSO
+
+[Settings](26-settings.md), [Pipelines](27-pipelines.md), [Appendix C](../appendix/c-settings.md).

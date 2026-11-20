@@ -45,7 +45,8 @@ var errScripted = errors.New("scripted")
 // user, the mechanism and its first bytes, the capabilities and the
 // attributes; each Challenge is answered by an Answer until Ready, the
 // Statuses before it taken as the session's settings; Ready's
-// capabilities are what was granted.
+// capabilities are what was granted
+// [PROTOCOL Challenge 'C'] [PROTOCOL Answer 'A'] [PROTOCOL Ready 'R'].
 func TestLoginExchange(t *testing.T) {
 	t.Parallel()
 

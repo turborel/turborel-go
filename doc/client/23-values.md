@@ -59,3 +59,15 @@ An interval's `Qualifier` has a `String` that writes it as SQL does, as
 | 22032 | `JSONOf` of octets that are not a stored JSON value |
 | 0A000 | SQLCODE -900: `NewJSON` of an item nested deeper than 128, or stored in more than 256 MiB |
 | 08006 | A reply holding a value that is malformed, SQLCODE -919: the connection fails |
+
+## EXAMPLES
+
+The examples of [Running Queries](../user/03-queries.md).
+
+## STANDARD
+
+[PROTOCOL Data types], [PROTOCOL Values] and [PROTOCOL JSON values] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT XML values] and [CLIENT UUIDs] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
+
+## SEE ALSO
+
+[Appendix A](../appendix/a-types.md), [Large Objects](24-large-objects.md).

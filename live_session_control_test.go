@@ -20,7 +20,8 @@ const warningQuery = "SELECT SUM(A) FROM (VALUES (1), (CAST(NULL AS INTEGER))) A
 // told one way: in its Complete, tag 17, with conditions; else as
 // Notices before its last reply, with notices; each a failure whose
 // severity is WARNING [CLIENT What the server tells], notices and
-// conditions granted [PROTOCOL Capabilities].
+// conditions granted [PROTOCOL Capabilities]
+// [PROTOCOL Notice 'N'].
 func TestLiveConditions(t *testing.T) {
 	t.Parallel()
 

@@ -110,3 +110,15 @@ shows its secret in its string.
 | 08006 | SQLCODE -919, before anything is sent: an offer of more than 32 attributes, or of one whose name is not 1 to 64 bytes or whose value is longer than 1024 |
 | TB910 | SQLCODE -910: a TLS target with no TLS configuration, or a target of no kind |
 | 40002 | The commit Terminate made failed, as of a deferred constraint not satisfied |
+
+## EXAMPLES
+
+The examples of [Connecting](../user/02-connecting.md).
+
+## STANDARD
+
+[PROTOCOL Opening a connection], [PROTOCOL Mechanisms], [PROTOCOL Capabilities], [PROTOCOL Cancel 'Z'], [PROTOCOL Terminate 'X'] and [PROTOCOL Ping 'G'] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Connecting] and [CLIENT Timeouts] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
+
+## SEE ALSO
+
+[Settings](26-settings.md), [Errors](30-errors.md).
