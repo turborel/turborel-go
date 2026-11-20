@@ -48,7 +48,8 @@ func TestCheckTestTags(t *testing.T) {
 // TestCheckTestSkipsOthers leaves alone functions `go test` does not run.
 //
 // Verifies: [TOOL] R-TRACE-1 only tests, fuzz tests, benchmarks and
-// examples need a Verifies paragraph.
+// examples need a Verifies paragraph; TestMain, which runs them, does
+// not.
 func TestCheckTestSkipsOthers(t *testing.T) {
 	t.Parallel()
 
@@ -61,6 +62,10 @@ func TestCheckTestSkipsOthers(t *testing.T) {
 
 	if got := known.checkTest(&ast.GenDecl{Tok: token.VAR}); got != "" {
 		t.Errorf("checkTest of a var = %q, want nothing", got)
+	}
+
+	if isTestName("TestMain") {
+		t.Error("TestMain needs a Verifies paragraph")
 	}
 
 	for _, name := range []string{"TestA", "FuzzA", "BenchmarkA", "ExampleA"} {

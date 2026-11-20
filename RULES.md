@@ -56,6 +56,7 @@ Each is told in full in [§7](#7-the-decisions).
 | D11 | Strict lints, tools pinned by version |
 | D12 | The checks tool is Go, in `internal/xtask` |
 | D13 | Go's `testing` package and its fuzzing |
+| D14 | The live tests' server, from the environment |
 
 ---
 
@@ -69,6 +70,7 @@ Each is told in full in [§7](#7-the-decisions).
 | `*_test.go` at the root | each file's tests, beside it, in the package itself |
 | `version.go` | `Version`, the Turborel release the driver is made for (D5) |
 | `internal/xtask/` | the checks tool (D12) |
+| `internal/testserver/` | the live tests' server (D14) |
 | `.golangci.yml` | golangci-lint's configuration (D11) |
 | `doc/` | the manual (R-DOC-7) |
 | `.github/` | CI, issue forms, the pull request template, labels, Dependabot |
@@ -308,8 +310,10 @@ under the name `turborel`, so a program opens a server with
 PostgreSQL, the native API gives what `database/sql` has no place for. A
 `context.Context` canceled while a statement runs cancels it on the
 server, by the protocol's Cancel on a connection of its own, and the
-call's failure wraps the context's error, so `errors.Is(err,
-context.Canceled)` holds.
+call's failure has the context's error as its cause, so
+`errors.Is(err, context.Canceled)` holds. A mechanism of the program's
+whose own error is not the driver's has it given as a connection
+failure caused by it.
 
 The driver's error is `*Error`, returned as Go's `error` and found by
 `errors.As`. An exact number is a `Decimal`, which holds every units and
@@ -398,8 +402,9 @@ floor below 100 % says why.
 
 The floor is 95 % of statements, `coverageFloor` in
 `internal/xtask/coverage.go`; Go's coverage tool counts statements and
-measures no branches. The checks tool's own statements are left out, as
-it is no part of the library. It is below 100 % because code of one
+measures no branches. The checks tool's statements and the live
+tests' server's are left out, as neither is part of the library (D12,
+D14). It is below 100 % because code of one
 platform, such as the Windows named pipe, runs only on its platform,
 while coverage is measured on Linux.
 
@@ -480,6 +485,23 @@ Tests use Go's `testing` package and nothing else (R-TEST-7), in
 `_test.go` files beside the code they test. A decoder of what a server
 sends has a fuzz test of Go's own, whose seeds run with every `go test`.
 
+#### D14. The live tests' server, from the environment
+
+The live tests run every request and capability against a real server,
+opt-in by the environment's TURBOREL_TEST_SERVER, so the unit tests stay
+deterministic (R-TEST-5): unset, they skip. It names a `turboreld`
+program, or `docker:` and an image, as
+`docker:ghcr.io/turborel/turborel:nightly`, run with the host's network
+so its clients are of its own machine. `internal/testserver` starts it,
+once for the test binary, on turborel-go's own port, 17433, with a Unix
+socket in a directory of its own, TLS by an authority, server and client
+certificates made as it starts, so no secret is ever committed, a client
+authority, SERVER.TRUST_LOCAL on, and an owner of a password; and stops
+it, waiting for its own process alone. CI sets the image on Linux; the
+image is for Linux alone, and macOS and Windows runners have no
+`turboreld`, so there the live tests skip. The package is test support,
+not part of the library, so its statements, like xtask's, are left out of
+coverage (D7).
 ---
 
 ## 8. References

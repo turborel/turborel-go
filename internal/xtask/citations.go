@@ -30,8 +30,10 @@ const verifiesPrefix = "Verifies: "
 // openWork is the file of open work, which no comment cites (R-DOC-5).
 const openWork = "TODO.md"
 
-// The prefixes of the functions `go test` runs.
+// The prefixes of the functions `go test` runs, and the one that runs
+// them.
 const (
+	testMain        = "TestMain"
 	prefixTest      = "Test"
 	prefixFuzz      = "Fuzz"
 	prefixBenchmark = "Benchmark"
@@ -232,8 +234,13 @@ func (c citer) checkTest(decl ast.Decl) string {
 	return function.Name.Name + " has no Verifies paragraph (R-TRACE-1)"
 }
 
-// isTestName says whether a function of this name is one `go test` runs.
+// isTestName says whether a function of this name is one `go test` runs
+// as a test: TestMain, which runs them, is not.
 func isTestName(name string) bool {
+	if name == testMain {
+		return false
+	}
+
 	for _, prefix := range []string{prefixTest, prefixFuzz, prefixBenchmark, prefixExample} {
 		if strings.HasPrefix(name, prefix) {
 			return true

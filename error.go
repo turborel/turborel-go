@@ -17,6 +17,9 @@ const (
 	// sqlstateConnectionFailure is the SQLSTATE of a connection that
 	// failed: class 08, connection exception, subclass 006.
 	sqlstateConnectionFailure = "08006"
+	// sqlstateInvalidAuthorization is the SQLSTATE of credentials refused:
+	// class 28, invalid authorization specification.
+	sqlstateInvalidAuthorization = "28000"
 	// sqlcodeData is the SQLCODE of a value that is not one, as
 	// turborel's data exception.
 	sqlcodeData int32 = -301
@@ -52,6 +55,26 @@ type Error struct {
 	// Diagnostics is what the failure is about, as the server told it
 	// with the capability diagnostics; nil if it told nothing.
 	Diagnostics *Diagnostics
+	// cause is what made the driver give up, such as a context done.
+	cause error
+}
+
+// Unwrap gives what made the driver give up, such as a context done, so
+// errors.Is(err, context.Canceled) holds of a call a context cancelled.
+func (e *Error) Unwrap() error { return e.cause }
+
+// withCause gives err with cause as its cause, if err is an *Error and
+// cause is not nil.
+func withCause(err, cause error) error {
+	failure, ok := err.(*Error) //nolint:errorlint // Only the driver's own failure takes a cause.
+	if !ok || cause == nil {
+		return err
+	}
+
+	given := *failure
+	given.cause = cause
+
+	return &given
 }
 
 // Diagnostics is what a failure or a notice says beyond its SQLSTATE and

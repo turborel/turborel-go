@@ -159,10 +159,10 @@ func TestReadFrame(t *testing.T) {
 	}
 
 	_, _, err = readFrame(bytes.NewReader([]byte{'G', 0}), maxBody, false)
-	assertBroken(t, err, "cut short")
+	assertBroken(t, err, "cannot receive")
 
 	_, _, err = readFrame(bytes.NewReader([]byte{'B', 5, 0, 0, 0, 1}), maxBody, false)
-	assertBroken(t, err, "cut short")
+	assertBroken(t, err, "the connection closed within a reply")
 
 	_, _, err = readFrame(bytes.NewReader([]byte{'B', 0, 0, 0, 0x7F}), maxBody, false)
 	assertBroken(t, err, "longer than")

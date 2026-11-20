@@ -5,7 +5,9 @@ package turborel
 // does not count the header, then the body.
 
 import (
+	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -51,16 +53,23 @@ func decodeFrameHeader(header [frameHeaderBytes]byte, limit uint32) (frameHeader
 	return decoded, nil
 }
 
+// reservedBody is the most of a body reserved before its bytes arrive,
+// as turborel-client's RESERVED, 64 KiB: past it the buffer grows as
+// they come, so a header alone makes the driver hold little.
+const reservedBody = 64 << 10
+
 // readFrame reads one frame from src: its header, then a body of at most
-// limit bytes, nothing held for a longer one [PROTOCOL Frames]. A frame
-// of kind `z` is inflated where compressed says `compression` was
-// granted, and fails the connection where it was not [PROTOCOL
-// Compressed frames]. A body cut short fails the connection.
+// limit bytes, nothing held for a longer one and no more than 64 KiB
+// reserved before its bytes arrive [PROTOCOL Frames]. A frame of kind
+// `z` is inflated where compressed says `compression` was granted, and
+// fails the connection where it was not [PROTOCOL Compressed frames]. A
+// header or body cut short, or a read that fails or runs out of time,
+// fails the connection.
 func readFrame(src io.Reader, limit uint32, compressed bool) (byte, []byte, error) {
 	var header [frameHeaderBytes]byte
 
 	if _, err := io.ReadFull(src, header[:]); err != nil {
-		return 0, nil, broken("a message is cut short: " + err.Error())
+		return 0, nil, ioFailed(verbReceive, err)
 	}
 
 	h, err := decodeFrameHeader(header, limit)
@@ -68,18 +77,25 @@ func readFrame(src io.Reader, limit uint32, compressed bool) (byte, []byte, erro
 		return 0, nil, err
 	}
 
-	body := make([]byte, h.length)
-	if _, err := io.ReadFull(src, body); err != nil {
-		return 0, nil, broken("a message is cut short: " + err.Error())
+	var body bytes.Buffer
+
+	body.Grow(int(min(h.length, reservedBody)))
+
+	if _, err := io.CopyN(&body, src, int64(h.length)); err != nil {
+		if errors.Is(err, io.EOF) {
+			return 0, nil, broken("cannot receive: the connection closed within a reply")
+		}
+
+		return 0, nil, ioFailed(verbReceive, err)
 	}
 
 	if h.kind != kindCompressed {
-		return h.kind, body, nil
+		return h.kind, body.Bytes(), nil
 	}
 
 	if !compressed {
 		return 0, nil, broken("a compressed frame came, compression not granted")
 	}
 
-	return decompress(body, limit)
+	return decompress(body.Bytes(), limit)
 }

@@ -106,14 +106,15 @@ linters:
     gosec:
       excludes: []
     # The driver's sum types are sealed interfaces, returned as such:
-    # Value, DataType, JSONItem and reply.
+    # Value, DataType, JSONItem and reply; and stream, what a connection
+    # reads and writes.
     ireturn:
       allow:
         - error
         - stdlib
         - empty
         - generic
-        - github.com/turborel/turborel-go\.(Value|DataType|JSONItem|reply)
+        - github.com/turborel/turborel-go\.(Value|DataType|JSONItem|reply|stream)
     errcheck:
       check-type-assertions: true
       check-blank: false
@@ -127,6 +128,11 @@ linters:
       - path: internal/xtask/
         linters: [forbidigo]
       - path: internal/xtask/
+        text: "G204"
+        linters: [gosec]
+      # The live tests' server package starts the server program the
+      # environment names (RULES.md R-TEST-8).
+      - path: internal/testserver/
         text: "G204"
         linters: [gosec]
       # R-CONST-5, R-TEST-4: tests use literal fixtures, as the spec

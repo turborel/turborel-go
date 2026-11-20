@@ -48,6 +48,7 @@ Project automation is the language's own tooling, never shell scripts
 | `*_test.go` at the root | each file's tests, beside it, in the package itself |
 | `version.go` | `Version`, the Turborel release the driver is made for (D5) |
 | `internal/xtask/` | the checks tool (D12) |
+| `internal/testserver/` | the live tests' server (D14) |
 | `.golangci.yml` | golangci-lint's configuration (D11) |
 | `doc/` | the manual (R-DOC-7) |
 | `.github/` | CI, issue forms, the pull request template, labels, Dependabot |

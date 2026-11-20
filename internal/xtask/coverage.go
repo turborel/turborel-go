@@ -18,10 +18,14 @@ import (
 // percent. It only rises (R-COV-2).
 const coverageFloor = 95.0
 
-// toolPackage is the path prefix of xtask's own files in a coverage
-// profile. Its tests verify its decisions (RULES.md D12), but it is no part
-// of the driver, so its statements do not count toward the floor.
-const toolPackage = "github.com/turborel/turborel-go/internal/xtask/"
+// The path prefixes of the packages in a coverage profile that are no
+// part of the driver: xtask, whose tests verify its decisions (RULES.md
+// D12), and the live tests' server. Their statements do not count
+// toward the floor.
+const (
+	toolPackage   = "github.com/turborel/turborel-go/internal/xtask/"
+	serverPackage = "github.com/turborel/turborel-go/internal/testserver/"
+)
 
 // percent turns a fraction into a percentage.
 const percent = 100.0
@@ -70,6 +74,12 @@ func coverage(out io.Writer) error {
 	return holdToFloor(covered, coverageFloor)
 }
 
+// notDriver says whether a profile's line is of a package no part of
+// the driver.
+func notDriver(line string) bool {
+	return strings.HasPrefix(line, toolPackage) || strings.HasPrefix(line, serverPackage)
+}
+
 // holdToFloor fails if covered is below floor.
 func holdToFloor(covered, floor float64) error {
 	if covered < floor {
@@ -87,7 +97,7 @@ func driverCoverage(profile io.Reader) (float64, error) {
 	scanner := bufio.NewScanner(profile)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "mode:") || strings.HasPrefix(line, toolPackage) || line == "" {
+		if line == "" || strings.HasPrefix(line, "mode:") || notDriver(line) {
 			continue
 		}
 
