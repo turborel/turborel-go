@@ -44,6 +44,13 @@ jobs:
         env:
           TURBOREL_TEST_SERVER: ${{ runner.os == 'Linux' && 'docker:ghcr.io/turborel/turborel:nightly' || '' }}
         run: go run ./internal/xtask verify
+      # A failing test's lines become annotations, which the checks' API
+      # gives without the job's log.
+      - name: Annotate the failing tests
+        if: failure()
+        env:
+          TURBOREL_TEST_SERVER: ${{ runner.os == 'Linux' && 'docker:ghcr.io/turborel/turborel:nightly' || '' }}
+        run: go test -count=1 ./... 2>&1 | grep -E -- '--- FAIL|_test\.go:[0-9]+|live server' | sed 's/^/::error::/'
 
   coverage:
     runs-on: ubuntu-latest

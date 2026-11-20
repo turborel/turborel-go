@@ -32,8 +32,10 @@ func makePipe(t *testing.T, path string) {
 
 	create := syscall.NewLazyDLL("kernel32.dll").NewProc("CreateNamedPipeW")
 
-	h, _, callErr := create.Call(uintptr(unsafe.Pointer(name)), pipeAccessDuplex, pipeTypeByte, pipeOneInstance,
-		pipeBufferBytes, pipeBufferBytes, pipeDefaultTimeout, 0)
+	// The name's pointer is converted within the call, as syscall's rules
+	// for passing a pointer to the Windows API ask.
+	h, _, callErr := create.Call(uintptr(unsafe.Pointer(name)), //nolint:gosec // G103: the API takes a pointer.
+		pipeAccessDuplex, pipeTypeByte, pipeOneInstance, pipeBufferBytes, pipeBufferBytes, pipeDefaultTimeout, 0)
 	if syscall.Handle(h) == syscall.InvalidHandle {
 		t.Fatalf("CreateNamedPipeW: %v", callErr)
 	}

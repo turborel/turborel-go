@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	// errorPipeBusy is Windows' ERROR_PIPE_BUSY: every instance of the
+	// errPipeBusy is Windows' ERROR_PIPE_BUSY: every instance of the
 	// pipe is busy.
-	errorPipeBusy syscall.Errno = 231
+	errPipeBusy syscall.Errno = 231
 	// busyRetry is how long a busy pipe is waited for before it is tried
 	// again, as turborel-client's BUSY_RETRY.
 	busyRetry = 10 * time.Millisecond
@@ -59,7 +59,7 @@ func openLocal(ctx context.Context, path string, within time.Duration) (stream, 
 			return f, nil
 		}
 
-		if !errors.Is(err, errorPipeBusy) {
+		if !errors.Is(err, errPipeBusy) {
 			return nil, ioFailed(verbConnect, err)
 		}
 
