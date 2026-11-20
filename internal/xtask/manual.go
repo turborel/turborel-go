@@ -3,8 +3,11 @@ package main
 // The manual's layout and every document's links (RULES.md R-DOC-7, D4):
 // each page of doc/ opens with its title and, but a volume's contents
 // page, a line holding only the link to it; each volume's contents page
-// lists its pages; and every relative link of a document resolves, those
-// of doc/ within doc/, since the docs site reads doc/ alone.
+// lists its pages; user/01-installing.md is there; doc/ holds no image;
+// every relative link of a document resolves within the repository; and
+// a page of doc/ links to this repository's own files relatively, never
+// by their GitHub address, as the docs site points such links at GitHub
+// at the same tag.
 
 import (
 	"errors"
@@ -26,6 +29,11 @@ const (
 	markdownExt   = ".md"
 	codeFence     = "```"
 	contentsAtRow = 2
+	// installingPage is the chapter the docs site keeps by its name.
+	installingPage = "user/01-installing.md"
+	// ownAddress begins the GitHub address of this repository's files,
+	// which a page of doc/ links to relatively instead.
+	ownAddress = "https://github.com/turborel/turborel-go/"
 )
 
 var (
@@ -34,6 +42,8 @@ var (
 	// absoluteTarget is a link out of the repository, or to a place in
 	// the same page.
 	absoluteTarget = regexp.MustCompile(`^([a-z][a-z0-9+.-]*:|#)`)
+	// image is a picture in a page, or a file of one.
+	image = regexp.MustCompile(`(?i)!\[|\.(png|jpe?g|gif|svg|webp|bmp|ico)$`)
 )
 
 // errManual is a page or a link out of place.
@@ -62,7 +72,7 @@ func checkDocuments(root string) ([]string, error) {
 		return nil, err
 	}
 
-	var problems []string
+	problems := checkManualFiles(root)
 
 	for _, page := range pages {
 		text, err := os.ReadFile(page) //nolint:gosec // G304: a document of the repository, listed by walking it.
@@ -75,6 +85,26 @@ func checkDocuments(root string) ([]string, error) {
 	}
 
 	return problems, nil
+}
+
+// checkManualFiles gives each problem with doc/'s files: its installing
+// chapter missing, or an image in it.
+func checkManualFiles(root string) []string {
+	var problems []string
+
+	if _, err := os.Stat(filepath.Join(root, manualDir, filepath.FromSlash(installingPage))); err != nil {
+		problems = append(problems, manualDir+"/"+installingPage+" is missing")
+	}
+
+	_ = filepath.WalkDir(filepath.Join(root, manualDir), func(path string, entry fs.DirEntry, err error) error {
+		if err == nil && !entry.IsDir() && image.MatchString(entry.Name()) {
+			problems = append(problems, path+": doc/ holds no images")
+		}
+
+		return nil
+	}) // A walk that fails finds nothing, and the installing chapter's check says so.
+
+	return problems
 }
 
 // markdownFiles lists the documents under root, leaving out hidden
@@ -132,22 +162,26 @@ func checkLinks(root, page, text string) []string {
 
 	inManual := isManual(root, page)
 
+	if inManual && image.MatchString(prose(text)) {
+		problems = append(problems, page+": doc/ holds no images")
+	}
+
 	for _, link := range markdownLink.FindAllStringSubmatch(prose(text), -1) {
 		target := link[1]
+		if inManual && strings.HasPrefix(target, ownAddress) {
+			problems = append(problems, page+": the link "+target+" is to this repository, and is relative")
+
+			continue
+		}
+
 		if absoluteTarget.MatchString(target) {
 			continue
 		}
 
 		file, _, _ := strings.Cut(target, "#")
 		path := filepath.Join(filepath.Dir(page), filepath.FromSlash(file))
-		if _, err := os.Stat(path); err != nil {
-			problems = append(problems, page+": the link "+target+" resolves to nothing")
-
-			continue
-		}
-
-		if inManual && !isManual(root, path) {
-			problems = append(problems, page+": the link "+target+" leaves doc/ and must be a full URL")
+		if _, err := os.Stat(path); err != nil || !within(root, path) {
+			problems = append(problems, page+": the link "+target+" resolves to nothing in the repository")
 		}
 	}
 
@@ -156,7 +190,12 @@ func checkLinks(root, page, text string) []string {
 
 // isManual says whether path is within root's doc/.
 func isManual(root, path string) bool {
-	rel, err := filepath.Rel(filepath.Join(root, manualDir), path)
+	return within(filepath.Join(root, manualDir), path)
+}
+
+// within says whether path is dir or under it.
+func within(dir, path string) bool {
+	rel, err := filepath.Rel(dir, path)
 
 	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 }

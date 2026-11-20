@@ -10,4 +10,4 @@ by capabilities rather than by new versions. A program reads the number
 as `turborel.Version`. Until 1.0.0 anything these manuals describe may
 change in any release. How releases are numbered
 and published is in
-[VERSIONING.md](https://github.com/turborel/turborel-go/blob/main/VERSIONING.md).
+[VERSIONING.md](../../VERSIONING.md).

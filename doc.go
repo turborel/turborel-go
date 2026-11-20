@@ -17,7 +17,8 @@
 // Every failure the driver returns is an [*Error], which carries the
 // failure's SQLCODE and SQLSTATE as well as its message.
 //
-// The protocol is described in The Native Protocol, Volume IV of the
+// The driver's manual is at https://turborel.com/docs/drivers/go/. The
+// protocol is described in The Native Protocol, Volume IV of the
 // turborel manuals:
 // https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md
 package turborel
