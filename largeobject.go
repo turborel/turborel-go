@@ -32,17 +32,11 @@ var errShortLOB = errors.New("the server sent less of the large object than its 
 // LargeObject is a large object: a [LOB] held whole, or a [Locator].
 type LargeObject interface {
 	Value
-	lobKind() LOBKind
 	lobOctets() uint64
 }
 
-func (v LOB) lobKind() LOBKind      { return v.Kind }
 func (v LOB) lobOctets() uint64     { return uint64(len(v.Octets)) }
-func (v Locator) lobKind() LOBKind  { return v.Kind }
 func (v Locator) lobOctets() uint64 { return v.Octets }
-func (v LOB) lobRange(from, count uint64, characters bool) []byte {
-	return heldRange(v, from, count, characters)
-}
 
 // ReadLOB gives at most a chunk of lob from octet from, counted from 0, at
 // most count octets; or, of a character large object if characters, from
@@ -52,7 +46,7 @@ func (v LOB) lobRange(from, count uint64, characters bool) []byte {
 func (c *Conn) ReadLOB(ctx context.Context, lob LargeObject, from, count uint64, characters bool) ([]byte, error) {
 	whole, ok := lob.(LOB)
 	if ok {
-		return whole.lobRange(from, count, characters), nil
+		return heldRange(whole, from, count, characters), nil
 	}
 
 	locator, _ := lob.(Locator) // A LargeObject is a LOB or a Locator.

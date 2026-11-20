@@ -222,3 +222,32 @@ func TestJSONText(t *testing.T) {
 		t.Errorf("a damaged value gave %q", got)
 	}
 }
+
+// TestQualifierText writes an interval's qualifier as SQL does.
+//
+// Verifies: [CLIENT Copying and exporting] a qualifier is written as SQL
+// writes it: its first field and leading precision, then TO and its last
+// field, SECOND with its fraction's digits; a field of no interval by
+// its number.
+func TestQualifierText(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		q    Qualifier
+		want string
+	}{
+		{Qualifier{Start: Year, End: Year, Leading: 4}, "YEAR(4)"},
+		{Qualifier{Start: Year, End: Month, Leading: 2}, "YEAR(2) TO MONTH"},
+		{Qualifier{Start: Month, End: Month, Leading: 2}, "MONTH(2)"},
+		{Qualifier{Start: Day, End: Hour, Leading: 3}, "DAY(3) TO HOUR"},
+		{Qualifier{Start: Hour, End: Minute, Leading: 2}, "HOUR(2) TO MINUTE"},
+		{Qualifier{Start: Minute, End: Second, Leading: 2, Fraction: 3}, "MINUTE(2) TO SECOND(3)"},
+		{Qualifier{Start: Second, End: Second, Leading: 2, Fraction: 6}, "SECOND(2, 6)"},
+		{Qualifier{Start: 9, End: 9, Leading: 1}, "9(1)"},
+	}
+	for _, c := range cases {
+		if got := c.q.String(); got != c.want {
+			t.Errorf("%+v gave %q", c.q, got)
+		}
+	}
+}
