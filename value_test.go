@@ -128,22 +128,33 @@ func TestValuesApproximateBits(t *testing.T) {
 	}
 }
 
-// TestValuesVaryingAsCharacter reads a CHARACTER VARYING value under
-// tag 1.
+// TestValuesVaryingAsCharacter reads the value tags of no value on the
+// page as turborel-protocol's reader takes them.
 //
-// Verifies: [PROTOCOL Values] a value's tag says how it is written, not
-// its column's type: no value has tag 5, CHARACTER VARYING's type tag,
-// and a CHARACTER VARYING value comes with tag 1.
+// Verifies: [PROTOCOL Values] a CHARACTER VARYING value comes with tag 1;
+// value tags 5, 7, 10 and 12, of no value on the page, are read as tags
+// 1, 6, 9 and 11, as turborel-protocol's reader takes them, the zoned
+// byte saying WITH TIME ZONE.
 func TestValuesVaryingAsCharacter(t *testing.T) {
 	t.Parallel()
 
-	if v := readValue(t, []byte{1, 1, 0, 0, 0, 'x'}); v != Char("x") {
-		t.Errorf("read %#v", v)
+	when := []byte{1, 6, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0}
+	cases := []struct {
+		body []byte
+		want Value
+	}{
+		{[]byte{1, 1, 0, 0, 0, 'x'}, Char("x")},
+		{[]byte{5, 1, 0, 0, 0, 'x'}, Char("x")},
+		{[]byte{7, 1, 0, 0, 0, 9}, Binary{9}},
+		{append([]byte{10}, when...), Datetime{Moment: MomentTime, UTC: 7, Zoned: true, Precision: 6}},
+		{append([]byte{12}, when...), Datetime{Moment: MomentTimestamp, UTC: 7, Zoned: true, Precision: 6}},
 	}
 
-	r := newReader([]byte{5, 1, 0, 0, 0, 'x'}, "value")
-	r.value()
-	assertBroken(t, r.finish(), "no value has this tag")
+	for _, c := range cases {
+		if v := readValue(t, c.body); !reflect.DeepEqual(v, c.want) {
+			t.Errorf("% X read %#v", c.body, v)
+		}
+	}
 }
 
 // TestValuesRefused refuses values the reference client refuses.

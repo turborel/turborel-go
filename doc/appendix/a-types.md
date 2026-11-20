@@ -46,12 +46,12 @@ its source type. Types and values nest at most 16 deep.
 | Tag | Value | Go type | Bounds |
 |---|---|---|---|
 | 0 | null | `Null` | |
-| 1 | character string, of either character type | `Char` | UTF-8 |
+| 1 | character string, of either character type; tag 5 read as 1 | `Char` | UTF-8 |
 | 2 | exact number | `Decimal` | units, `Units()`, a `*big.Int` from −2¹²⁷ to 2¹²⁷ − 1; `Scale()`, a `uint32` |
 | 3 | approximate number | `Approx` | a `float64`, its bits kept, NaN and −0.0 among them |
 | 4 | a plug-in's value | `PluginValue` | `Type`, `Text`, `Bytes`, sent back as it came |
-| 6 | binary string | `Binary` | |
-| 8, 9, 11 | date, time, timestamp | `Datetime` | `Moment`; `UTC`, microseconds in UTC; `Zone`, the displacement in minutes; `Zoned`; `Precision`; `Time()` gives a `time.Time` |
+| 6 | binary string; tag 7 read as 6 | `Binary` | |
+| 8, 9, 11 | date, time, timestamp; tags 10 and 12 read as 9 and 11, the zoned byte saying WITH TIME ZONE | `Datetime` | `Moment`; `UTC`, microseconds in UTC; `Zone`, the displacement in minutes; `Zoned`; `Precision`; `Time()` gives a `time.Time` |
 | 13 | interval | `Interval` | `Qualifier`; `Units()`, months or microseconds, an i128 |
 | 14 | truth value | `Bool` | unknown is `Null` |
 | 15 | decimal floating point | `DecFloat` | `Coefficient()`, at most 34 digits, no trailing zero; `Exponent()`, its power of ten, the leading digit's within −6143 and 6144 |

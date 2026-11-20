@@ -30,12 +30,14 @@ func (r *reader) value() Value {
 	return nil
 }
 
-// scalarValue reads the value of tag if it is one of tags 0 to 15.
+// scalarValue reads the value of tag if it is one of tags 0 to 15: tags
+// 5, 7, 10 and 12, of no value on the page, read as tags 1, 6, 9 and 11,
+// as turborel-protocol's reader takes them.
 func (r *reader) scalarValue(tag byte) (Value, bool) {
 	switch tag {
 	case tagNull:
 		return Null{}, true
-	case tagCharacter:
+	case tagCharacter, tagVarying:
 		return Char(r.str()), true
 	case tagExact:
 		return Decimal{units: r.i128(), scale: r.u32()}, true
@@ -43,9 +45,9 @@ func (r *reader) scalarValue(tag byte) (Value, bool) {
 		return Approx(math.Float64frombits(r.u64())), true
 	case tagPlugin:
 		return PluginValue{Type: r.str(), Text: r.str(), Bytes: r.bytes()}, true
-	case tagBinary:
+	case tagBinary, tagBinaryVarying:
 		return Binary(r.bytes()), true
-	case tagDate, tagTime, tagTimestamp:
+	case tagDate, tagTime, tagTimeZoned, tagTimestamp, tagTimestampZoned:
 		return r.datetime(tag), true
 	case tagInterval:
 		return Interval{Qualifier: r.qualifier(), units: r.i128()}, true
@@ -113,7 +115,7 @@ func (r *reader) datetime(tag byte) Datetime {
 	switch tag {
 	case tagDate:
 		d.Moment = MomentDate
-	case tagTime:
+	case tagTime, tagTimeZoned:
 		d.Moment = MomentTime
 	}
 
