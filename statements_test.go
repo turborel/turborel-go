@@ -2,6 +2,7 @@ package turborel
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"strings"
 	"testing"
@@ -430,5 +431,92 @@ func TestStatusCatalogNull(t *testing.T) {
 
 	if catalog, ok := c.Setting(StatusCatalog); !ok || catalog != "" {
 		t.Errorf("CATALOG = %q, %v", catalog, ok)
+	}
+}
+
+// deepJSON is a JSON document of arrays nested past 128, each of one
+// element.
+func deepJSON() []byte {
+	const node = 13
+
+	deep := make([]byte, 0, 1+node*(maxJSONNesting+1))
+	deep = append(deep, jsonVersion)
+
+	for range maxJSONNesting + 1 {
+		deep = append(deep, jsonArray, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+	}
+
+	return deep
+}
+
+// assertLosesOn checks that a reply of kind, its body written by body,
+// loses the connection of the Query it answers.
+func assertLosesOn(t *testing.T, name string, kind byte, body func(w *writer)) {
+	t.Helper()
+
+	c := openGranted(t, nil, func(f *fake) {
+		f.request()
+		f.reply(kind, body)
+	})
+
+	_, err := c.Query(context.Background(), "Q")
+	if !c.IsLost() {
+		t.Errorf("%s: %v", name, err)
+	}
+
+	assertBroken(t, err, "")
+}
+
+// TestUndecodableRepliesLose loses the connection of a reply value that
+// cannot be decoded.
+//
+// Verifies: [PROTOCOL Values] a reply holding a value that cannot be
+// decoded loses the connection, SQLCODE -919 and SQLSTATE 08006, the rest
+// of it unread: value tags 18 and 19, the server's stored form of large
+// objects, never sent; a truth byte not 0 or 1; a character type's units
+// byte not 0 or 1; a damaged JSON document, or one nested past 128; a
+// malformed condition in Complete's tag 17 [PROTOCOL Complete 'K']. A
+// JSON document longer than 256 MiB is damaged (RULES.md D8).
+func TestUndecodableRepliesLose(t *testing.T) {
+	t.Parallel()
+
+	deep := deepJSON()
+	values := map[string][]byte{
+		"tag 18": {18, 0, 0, 0, 0, 0}, "tag 19": {19, 0, 0, 0, 0, 0}, "truth 2": {14, 2},
+		"JSON damaged": {25, 2, 0, 0, 0, 1, 99},
+		"JSON deep":    append(binary.LittleEndian.AppendUint32([]byte{25}, count32(len(deep))), deep...),
+	}
+
+	for name, value := range values {
+		assertLosesOn(t, name, kindRows, func(w *writer) {
+			w.u32(1)
+			w.u32(1)
+			w.buf = append(w.buf, value...)
+		})
+	}
+
+	assertLosesOn(t, "units 2", kindDescription, func(w *writer) {
+		w.u32(1)
+		w.flag(true)
+		w.str("N")
+		w.u8(tagCharacter)
+		w.u32(1)
+		w.u8(2)
+		w.flag(false)
+	})
+	assertLosesOn(t, "condition", kindComplete, func(w *writer) {
+		w.u32(0)
+		w.str("00000")
+		w.flag(false)
+		w.u8(tailConditions)
+		w.u32(1)
+		w.bytes([]byte{1})
+	})
+
+	huge := make([]byte, maxJSONOctets+1)
+	huge[0] = jsonVersion
+
+	if err := validateJSON(huge); err == nil || !strings.Contains(err.Error(), "longer than 256 MiB") {
+		t.Errorf("a document past 256 MiB gave %v", err)
 	}
 }

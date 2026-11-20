@@ -35,6 +35,10 @@ func readJSONDocument(doc []byte) (JSONItem, error) {
 		return nil, damaged("it does not begin with its format's version")
 	}
 
+	if len(doc) > maxJSONOctets {
+		return nil, damaged("it is longer than 256 MiB")
+	}
+
 	j := jsonReader{doc: doc[1:]}
 
 	item, length := j.node(0, 0)
