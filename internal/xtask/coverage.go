@@ -16,7 +16,7 @@ import (
 
 // coverageFloor is the least statement coverage of the driver, in
 // percent. It only rises (R-COV-2).
-const coverageFloor = 90.0
+const coverageFloor = 95.0
 
 // toolPackage is the path prefix of xtask's own files in a coverage
 // profile. Its tests verify its decisions (RULES.md D12), but it is no part

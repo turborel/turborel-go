@@ -396,7 +396,7 @@ least 90 % of lines, and of branches where the tool measures them. It
 only rises: a change that raises coverage well above it raises it. A
 floor below 100 % says why.
 
-The floor is 90 % of statements, `coverageFloor` in
+The floor is 95 % of statements, `coverageFloor` in
 `internal/xtask/coverage.go`; Go's coverage tool counts statements and
 measures no branches. The checks tool's own statements are left out, as
 it is no part of the library. It is below 100 % because code of one
