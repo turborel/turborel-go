@@ -105,6 +105,15 @@ linters:
         - name: confusing-naming
     gosec:
       excludes: []
+    # The driver's sum types are sealed interfaces, returned as such:
+    # Value, DataType, JSONItem and reply.
+    ireturn:
+      allow:
+        - error
+        - stdlib
+        - empty
+        - generic
+        - github.com/turborel/turborel-go\.(Value|DataType|JSONItem|reply)
     errcheck:
       check-type-assertions: true
       check-blank: false
@@ -120,6 +129,10 @@ linters:
       - path: internal/xtask/
         text: "G204"
         linters: [gosec]
+      # R-CONST-5, R-TEST-4: tests use literal fixtures, as the spec
+      # prints its bytes.
+      - path: _test\.go
+        linters: [goconst]
 
 formatters:
   enable:

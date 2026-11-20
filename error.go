@@ -4,20 +4,33 @@ package turborel
 // sends and one the driver finds itself are told the same way, by
 // SQLCODE and SQLSTATE, so a program handles both alike.
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
-// SQLCODE and SQLSTATE of the failures the driver makes itself, as the
-// protocol gives them [PROTOCOL Errors and notices].
+// SQLCODE and SQLSTATE of the failures the driver makes itself.
 const (
-	// sqlcodeConnection is the SQLCODE of a connection that failed.
+	// sqlcodeConnection is the SQLCODE of a connection that failed
+	// [PROTOCOL Errors and notices].
 	sqlcodeConnection int32 = -919
 	// sqlstateConnectionFailure is the SQLSTATE of a connection that
 	// failed: class 08, connection exception, subclass 006.
 	sqlstateConnectionFailure = "08006"
+	// sqlcodeData is the SQLCODE of a value that is not one, as
+	// turborel's data exception.
+	sqlcodeData int32 = -301
+	// sqlstateOutOfRange is the SQLSTATE of a number out of range: class
+	// 22, data exception, subclass 003.
+	sqlstateOutOfRange = "22003"
+	// sqlstateInvalidJSON is the SQLSTATE of a JSON value that is not
+	// one: class 22, data exception, subclass 032.
+	sqlstateInvalidJSON = "22032"
 )
 
 // Error is every failure the driver returns: one the server sent, or one
-// the driver found, such as a malformed reply.
+// the driver found, such as a malformed reply. Its fields are those of
+// the protocol's failure [PROTOCOL Composite fields].
 type Error struct {
 	// SQLCode is the failure's SQLCODE, a negative number.
 	SQLCode int32
@@ -25,12 +38,61 @@ type Error struct {
 	SQLState string
 	// Message says what went wrong, in plain words.
 	Message string
+	// Rule is the clause of a standard the failure cites, as turborel's
+	// messages do; empty if it cites none.
+	Rule string
+	// Position is where in the statement the failure was found, in
+	// characters, if Placed.
+	Position uint64
+	// Placed says whether Position is known.
+	Placed bool
+	// Active says whether the session's transaction is active after the
+	// failure.
+	Active bool
+	// Diagnostics is what the failure is about, as the server told it
+	// with the capability diagnostics; nil if it told nothing.
+	Diagnostics *Diagnostics
 }
 
-// Error gives the failure as one line: its SQLCODE, SQLSTATE and
-// message, in the form turborel-client gives it.
+// Diagnostics is what a failure or a notice says beyond its SQLSTATE and
+// message [PROTOCOL Errors and notices]. A field the server did not
+// tell is empty.
+type Diagnostics struct {
+	// Severity is ERROR, FATAL, WARNING or NOTICE.
+	Severity string
+	// Detail says more than the message, as the key a constraint
+	// refused.
+	Detail string
+	// Hint says what may be done about it.
+	Hint string
+	// Context is the trigger or routine running, as "trigger S.T".
+	Context string
+	// Schema is the schema of what it is about.
+	Schema string
+	// Table is the table or view it is about.
+	Table string
+	// Column is the column it is about.
+	Column string
+	// DataType is the data type of the value it is about.
+	DataType string
+	// Constraint is the constraint broken.
+	Constraint string
+}
+
+// Error gives the failure as one line, in the form turborel-client
+// gives it: its SQLCODE, SQLSTATE and message, then the rule it cites
+// and where, if known.
 func (e *Error) Error() string {
-	return fmt.Sprintf("SQLCODE %d (SQLSTATE %s): %s", e.SQLCode, e.SQLState, e.Message)
+	line := fmt.Sprintf("SQLCODE %d (SQLSTATE %s): %s", e.SQLCode, e.SQLState, e.Message)
+	if e.Rule != "" {
+		line += " [" + e.Rule + "]"
+	}
+
+	if e.Placed {
+		line += " (at character " + strconv.FormatUint(e.Position, decimalRadix) + ")"
+	}
+
+	return line
 }
 
 // broken is a connection failure, SQLCODE -919 and SQLSTATE 08006. The
@@ -38,4 +100,16 @@ func (e *Error) Error() string {
 // connection is not used again [PROTOCOL Frames].
 func broken(message string) *Error {
 	return &Error{SQLCode: sqlcodeConnection, SQLState: sqlstateConnectionFailure, Message: message}
+}
+
+// outOfRange is a number a program gave that the protocol cannot carry,
+// SQLSTATE 22003.
+func outOfRange(message string) *Error {
+	return &Error{SQLCode: sqlcodeData, SQLState: sqlstateOutOfRange, Message: message}
+}
+
+// invalidJSON is a JSON value a program gave that is not one, SQLSTATE
+// 22032.
+func invalidJSON(message string) *Error {
+	return &Error{SQLCode: sqlcodeData, SQLState: sqlstateInvalidJSON, Message: message}
 }
