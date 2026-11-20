@@ -54,7 +54,8 @@ is its statement's, and the session goes on.
 
 A statement's warnings, completion conditions of class 01, come one
 way. With conditions granted they come in its completion, and
-`Conditions` gives them; otherwise, with notices granted, each comes as
+`Conditions` gives them, and `TakeConditions` takes them, so each is
+told once; otherwise, with notices granted, each comes as
 a notice before its outcome, handed to the handler `SetNoticeHandler`
 set, or with none kept, the last 64, for `TakeNotices`. The server's own
 notices always come as notices. `Warning` gives the SQLSTATE of the

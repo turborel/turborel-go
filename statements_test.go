@@ -189,12 +189,22 @@ func TestStatementsNeedCapabilities(t *testing.T) {
 	}
 }
 
+// assertTaken takes c's one condition, which is gone after.
+func assertTaken(t *testing.T, c *Conn) {
+	t.Helper()
+
+	if taken := c.TakeConditions(); len(taken) != 1 || len(c.Conditions()) != 0 || c.TakeConditions() != nil {
+		t.Errorf("taken %v, then %v", taken, c.Conditions())
+	}
+}
+
 // TestCompletionTold reads what the last completion told.
 //
 // Verifies: [CLIENT What the server tells] the rows a statement counted,
 // the identity values it generated, the server's time, the commit's
-// position and the conditions it raised, from its Complete's tail; none
-// of them before a statement [PROTOCOL Complete 'K'].
+// position and the conditions it raised, from its Complete's tail, the
+// conditions taken so each is told once; none of them before a statement
+// [PROTOCOL Complete 'K'].
 func TestCompletionTold(t *testing.T) {
 	t.Parallel()
 
@@ -221,7 +231,8 @@ func TestCompletionTold(t *testing.T) {
 		})
 	})
 
-	if _, ok := c.RowsAffected(); ok || c.LastGenerated() != nil || c.ServerTime() != nil || c.Conditions() != nil {
+	if _, ok := c.RowsAffected(); ok || c.LastGenerated() != nil || c.ServerTime() != nil || c.Conditions() != nil ||
+		c.TakeConditions() != nil {
 		t.Error("told before any statement")
 	}
 
@@ -240,6 +251,8 @@ func TestCompletionTold(t *testing.T) {
 		c.Conditions()[0].SQLState != "01003" {
 		t.Errorf("told rows %d, position %d", rows, position)
 	}
+
+	assertTaken(t, c)
 }
 
 // TestReplicaBehind gives the failure of a replica that had not applied

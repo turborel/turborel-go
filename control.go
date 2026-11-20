@@ -72,6 +72,19 @@ func (c *Conn) Conditions() []*Error {
 	return slices.Clone(c.last.Conditions)
 }
 
+// TakeConditions takes the conditions Conditions gives, so a program that
+// tells them after each statement tells each once.
+func (c *Conn) TakeConditions() []*Error {
+	if c.last == nil {
+		return nil
+	}
+
+	taken := c.last.Conditions
+	c.last.Conditions = nil
+
+	return taken
+}
+
 // Reset puts the session back as it was at login: its transaction rolled
 // back, its prepared statements, cursors, temporary tables and settings
 // gone, its user and cancel key kept. It needs reset granted.

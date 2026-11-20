@@ -69,6 +69,7 @@ func (c *Conn) LastGenerated() []string
 func (c *Conn) ServerTime() *Timing
 func (c *Conn) CommitPosition() (uint64, bool)
 func (c *Conn) Conditions() []*Error
+func (c *Conn) TakeConditions() []*Error
 func (c *Conn) Warning() (string, bool)
 func (c *Conn) Reset(ctx context.Context) error
 func (c *Conn) ChangeUser(ctx context.Context, user string, mechanism Mechanism) error
@@ -93,7 +94,7 @@ saying whether the cursor has more. A cursor other than 0 needs cursors,
 A completion's tail is kept as the connection's last: `RowsAffected`
 with row-counts, `LastGenerated` with generated-values, `ServerTime`
 with row-counts, `CommitPosition` with commit-position, `Conditions` with
-conditions. `Reset` and `ChangeUser` need reset and change-user.
+conditions, which `TakeConditions` takes. `Reset` and `ChangeUser` need reset and change-user.
 
 Each call takes a context; one done while its statement runs cancels it
 on the server, by the protocol's Cancel, and the call's failure has the
@@ -111,3 +112,4 @@ the connection lost.
 | TB920 | SQLCODE -920: the statement was cancelled |
 | 08006 | SQLCODE -919, before anything is sent, the connection kept: query attributes past the bounds a server takes |
 | 08006 | SQLCODE -919: a capability not granted, a reply out of its place, or the connection lost |
+
