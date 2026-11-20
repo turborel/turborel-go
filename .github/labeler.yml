@@ -1,0 +1,70 @@
+# Files are named for their area (RULES.md D4), so these globs label a
+# pull request by the areas it touches.
+
+area/codec:
+  - changed-files:
+      - any-glob-to-any-file: ["frame*.go", "field*.go", "tail*.go", "type*.go", "value*.go", "compress*.go", "json*.go", "error*.go"]
+
+area/transport:
+  - changed-files:
+      - any-glob-to-any-file: ["transport*.go", "dial*.go", "pipe.go", "pipe_*.go", "timeout*.go"]
+
+area/auth:
+  - changed-files:
+      - any-glob-to-any-file: ["auth*.go", "mechanism*.go", "scram*.go"]
+
+area/tls:
+  - changed-files:
+      - any-glob-to-any-file: ["tls*.go"]
+
+area/session:
+  - changed-files:
+      - any-glob-to-any-file: ["conn*.go", "session*.go", "status*.go", "notice*.go", "cancel*.go"]
+
+area/statements:
+  - changed-files:
+      - any-glob-to-any-file: ["statement*.go", "query*.go", "prepare*.go", "cursor*.go", "rows*.go"]
+
+area/lobs:
+  - changed-files:
+      - any-glob-to-any-file: ["lob*.go"]
+
+area/copy:
+  - changed-files:
+      - any-glob-to-any-file: ["copy*.go", "import*.go", "export*.go"]
+
+area/settings:
+  - changed-files:
+      - any-glob-to-any-file: ["settings*.go", "uri*.go", "service*.go", "passfile*.go", "failover*.go", "role*.go"]
+
+area/pipeline:
+  - changed-files:
+      - any-glob-to-any-file: ["pipeline*.go"]
+
+area/pool:
+  - changed-files:
+      - any-glob-to-any-file: ["pool*.go"]
+
+area/api:
+  - changed-files:
+      - any-glob-to-any-file: ["driver*.go", "sql*.go", "agent*.go", "doc.go", "version.go"]
+
+area/xtask:
+  - changed-files:
+      - any-glob-to-any-file: ["internal/xtask/**"]
+
+area/doc:
+  - changed-files:
+      - any-glob-to-any-file: ["doc/**", "README.md", "RULES.md", "CONFORMANCE.md", "TODO.md", "AGENTS.md", "CLAUDE.md", "CONTRIBUTING.md", "SECURITY.md", "TRADEMARK.md", "VERSIONING.md"]
+
+area/ci:
+  - changed-files:
+      - any-glob-to-any-file: [".github/**", ".githooks/**"]
+
+area/build:
+  - changed-files:
+      - any-glob-to-any-file: ["go.mod", ".golangci.yml", ".gitattributes", ".gitignore"]
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: ["go.mod", "go.sum", "internal/xtask/verify.go", ".github/workflows/**", ".github/dependabot.yml"]

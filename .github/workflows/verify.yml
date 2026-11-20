@@ -1,0 +1,64 @@
+# Every check a change must pass (RULES.md R-PROC-1, D9), on each platform
+# the driver claims to run on and each Go release it supports (D3), plus
+# the coverage report (D10) and govulncheck. Every action is pinned by its
+# full commit SHA, its version in a comment.
+name: verify
+
+# A pull request is checked once, through pull_request, and main again once
+# it is merged. Pushing a branch with an open pull request starts no second
+# set of the same checks.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to a pull request replaces its checks still running.
+concurrency:
+  group: verify-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ["1.26.x", "1.27.x"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Every check
+        timeout-minutes: 30
+        run: go run ./internal/xtask verify
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27.x"
+      - name: Coverage and its floor
+        run: go run ./internal/xtask coverage
+
+  vulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27.x"
+      - name: govulncheck
+        run: go run ./internal/xtask vulncheck

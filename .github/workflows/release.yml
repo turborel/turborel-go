@@ -1,0 +1,55 @@
+# Builds and checks a release, run only by hand (VERSIONING.md,
+# Publishing). It publishes nothing: Go has no registry to upload to, and
+# a version is published by pushing its tag, which the Go module proxy
+# then fetches. Those steps are written below and left disabled; the
+# owner enables them once every turborel driver is done.
+name: release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.27.x"
+      - name: Every check
+        run: go run ./internal/xtask verify
+      - name: govulncheck
+        run: go run ./internal/xtask vulncheck
+      - name: The module builds as a program importing it would build it
+        run: |
+          go mod verify
+          go build ./...
+          go list -m -json
+      - name: The version tagged is Version
+        id: version
+        run: |
+          version=$(sed -n 's/^const Version = "\(.*\)"$/\1/p' version.go)
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "Would publish v$version"
+
+      # Publishing, disabled: the owner enables these steps once every
+      # turborel driver is done (VERSIONING.md, Publishing), by removing
+      # each `if: false`, giving the job `contents: write`, and letting
+      # checkout keep its credentials so the tag can be pushed.
+      - name: Tag the release
+        if: false
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git tag "$TAG"
+          git push origin "$TAG"
+      - name: Ask the Go module proxy for the version
+        if: false
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: GOPROXY=https://proxy.golang.org go list -m "github.com/turborel/turborel-go@$TAG"

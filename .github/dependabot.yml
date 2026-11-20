@@ -1,0 +1,20 @@
+# Dependabot keeps the Go module's requirements and the workflows' actions
+# up to date (RULES.md D6, D7). The module has no requirement yet; the
+# entry is here so one added is watched from the start. Pinned tools run
+# by `go run` are named in internal/xtask/verify.go and raised by hand.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    labels: ["dependencies"]
+    commit-message:
+      prefix: build
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: ["dependencies"]
+    commit-message:
+      prefix: ci

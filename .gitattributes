@@ -1,0 +1,3 @@
+# Text files are checked out ending lines with LF on every platform, as
+# gofmt writes them and the tests read fixtures by their lines.
+* text=auto eol=lf

@@ -1,0 +1,8 @@
+# Test binaries, and coverage and performance profiles.
+*.test
+*.out
+*.prof
+.idea/
+.vscode/
+.DS_Store
+.claude/

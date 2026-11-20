@@ -1,0 +1,41 @@
+name: Feature
+description: Something the driver should do that it does not.
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check TODO.md and CONFORMANCE.md first: it may be planned already.
+        The driver matches turborel-client; a feature of the server or the protocol itself is proposed to turborel.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What your program needs to do, and why the driver cannot do it today, or not well.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - The database/sql driver
+        - The native API
+        - Connecting, TLS or authentication
+        - Settings, several servers, pipelines or pools
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: How it would work, and the API it would add, as Go declarations.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What else would solve the problem, and why this is better.
