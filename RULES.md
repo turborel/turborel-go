@@ -57,6 +57,7 @@ Each is told in full in [§7](#7-the-decisions).
 | D12 | The checks tool is Go, in `internal/xtask` |
 | D13 | Go's `testing` package and its fuzzing |
 | D14 | The live tests' server, from the environment |
+| D15 | The sample frames, a fixture copied at a pinned commit |
 
 ---
 
@@ -71,6 +72,7 @@ Each is told in full in [§7](#7-the-decisions).
 | `version.go` | `Version`, the Turborel release the driver is made for (D5) |
 | `internal/xtask/` | the checks tool (D12) |
 | `internal/testserver/` | the live tests' server (D14) |
+| `testdata/` | Turborel's sample frames, copied at the pinned commit (D15) |
 | `.golangci.yml` | golangci-lint's configuration (D11) |
 | `doc/` | the manual (R-DOC-7) |
 | `.github/` | CI, issue forms, the pull request template, labels, Dependabot |
@@ -515,6 +517,23 @@ image is for Linux alone, and macOS and Windows runners have no
 `turboreld`, so there the live tests skip. The package is test support,
 not part of the library, so its statements, like xtask's, are left out of
 coverage (D7).
+
+#### D15. The sample frames, a fixture copied at a pinned commit
+
+`testdata/05-protocol-frames.tsv` is Turborel's
+`doc/client/05-protocol-frames.tsv` copied byte for byte at 045e42a9,
+the commit CONFORMANCE.md names, and moves with that pin. A copy, rather
+than a read of a Turborel checkout in a test skipped where there is
+none, runs wherever the unit tests run, on every platform, and gives the
+same result each time (R-TEST-5). The tests read each server frame from
+a stream as a connection does, inflated if compressed, and compare its
+reply with the one its meaning gives, written in the test. They encode
+each client frame by the driver's own requests and compare it byte for
+byte. The one compressed client frame is compared by what it holds, its
+kind, its length and the frame it inflates to, since its zlib stream is
+the compressor's choice: Go's `compress/zlib` writes other bytes than
+turborel's own deflate, and the server inflates either alike
+[PROTOCOL Compressed frames].
 ---
 
 ## 8. References

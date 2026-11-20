@@ -57,10 +57,10 @@ The same in every driver; the status of each row is in its table.
 
 | Part | Rows |
 |---|---|
-| The protocol | 253 |
+| The protocol | 257 |
 | The client library | 95 |
 | Settings, pipelines and pools | 82 |
-| All but the standard API | 430 |
+| All but the standard API | 434 |
 
 ---
 
@@ -548,6 +548,15 @@ they follow Turborel's RULES.md D89 and `src/json/binary.rs`.
 | P-ERRN-4 | SQLSTATE 01T01, Reset or ChangeUser rolled back the transaction, a Notice of severity NOTICE | `[PROTOCOL Errors and notices]` | done |
 | P-ERRN-5 | SQLSTATE TBR01, SQLCODE -920, a replica that had not applied REPLICATION.READ_AFTER's position in time | `[PROTOCOL Errors and notices]` | done |
 | P-ERRN-6 | A malformed message, a request not granted, a frame too long or a request out of turn fails the connection (SQLCODE -919, SQLSTATE 08006) | `[PROTOCOL Errors and notices]` | done |
+
+### Sample frames
+
+| ID | Row | Citation | Status |
+|---|---|---|---|
+| P-FRAMES-1 | Every line of `05-protocol-frames.tsv`, at a pinned commit, read as the page lays it out: direction, name, needs, hex, means | `[PROTOCOL Sample frames]` | done |
+| P-FRAMES-2 | Every server frame decoded to what its meaning says, with the capabilities it needs granted | `[PROTOCOL Sample frames]` | done |
+| P-FRAMES-3 | Every client frame the driver can send encoded byte for byte as the file holds it | `[PROTOCOL Sample frames]` | done |
+| P-FRAMES-4 | A compressed frame's sample inflated to the frame its meaning names | `[PROTOCOL Sample frames]` | done |
 
 ### A worked example
 
