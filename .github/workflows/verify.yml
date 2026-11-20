@@ -35,8 +35,14 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go }}
+      # The live tests run on Linux against the nightly server image, in a
+      # container on the host's network, set up by internal/testserver.
+      # The image is built for Linux alone and macOS and Windows runners
+      # have no turboreld, so there the live tests skip.
       - name: Every check
         timeout-minutes: 30
+        env:
+          TURBOREL_TEST_SERVER: ${{ runner.os == 'Linux' && 'docker:ghcr.io/turborel/turborel:nightly' || '' }}
         run: go run ./internal/xtask verify
 
   coverage:
@@ -49,6 +55,8 @@ jobs:
         with:
           go-version: "1.27.x"
       - name: Coverage and its floor
+        env:
+          TURBOREL_TEST_SERVER: docker:ghcr.io/turborel/turborel:nightly
         run: go run ./internal/xtask coverage
 
   vulncheck:
