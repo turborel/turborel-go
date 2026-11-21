@@ -70,7 +70,8 @@ func TestLiveRowsOfLOBMarks(t *testing.T) {
 // its place gives it is cut to that type as it is cast, and the statement
 // completes with the warning 01004, executed again too: an INSERT's and
 // an UPDATE's value, of the column's type, and a comparison operand, of
-// the other operand's, whose cut value is compared; a value that fits
+// the other operand's, whose cut value is compared, with ORDER BY or
+// without; a value that fits
 // warns of nothing; a literal too long refused, 22001 [CLIENT Prepared
 // statements].
 func TestLiveMarkCut(t *testing.T) {
@@ -113,9 +114,11 @@ func TestLiveMarkCut(t *testing.T) {
 		t.Errorf("update completed %s", o.Completion.SQLState)
 	}
 
-	compared := cut("SELECT K FROM CUT_TEST.V WHERE S = ? ORDER BY K", Char("abcdefgh"))
-	if state, _ := c.Warning(); state != "01004" || len(compared.Rows) != 2 {
-		t.Errorf("a comparison gave %v, %s", compared.Rows, state)
+	for _, order := range []string{" ORDER BY K", ""} {
+		compared := cut("SELECT K FROM CUT_TEST.V WHERE S = ?"+order, Char("abcdefgh"))
+		if state, _ := c.Warning(); state != "01004" || len(compared.Rows) != 2 {
+			t.Errorf("a comparison%s gave %v, %s", order, compared.Rows, state)
+		}
 	}
 
 	if got := mustRun(t, c, "SELECT S FROM CUT_TEST.V ORDER BY K").Rows; len(got) != 3 || got[0][0] != Char("abcde") ||

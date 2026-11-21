@@ -99,14 +99,14 @@ func TestLiveDeclaredTypes(t *testing.T) {
 //
 // Verifies: [DESIGN] D2 a column's DatabaseTypeName is its declared
 // type's name, INTEGER of an INTEGER column, DECIMAL of a DECIMAL(9,2)
-// one [PROTOCOL Declared types].
+// one, of a VALUES of CASTs too [PROTOCOL Declared types].
 func TestLiveDeclaredTypeNames(t *testing.T) {
 	t.Parallel()
 
 	db := liveDB(t)
 
 	rows, err := db.QueryContext(context.Background(),
-		"SELECT CAST(1 AS INTEGER), CAST(2.5 AS DECIMAL(9,2)), CAST(1 AS DOUBLE PRECISION) FROM (VALUES 1) AS X(Y)")
+		"VALUES (CAST(1 AS INTEGER), CAST(2.5 AS DECIMAL(9,2)), CAST(1 AS DOUBLE PRECISION))")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,5 +129,44 @@ func TestLiveDeclaredTypeNames(t *testing.T) {
 
 	if !slices.Equal(names, []string{"INTEGER", "DECIMAL", "DOUBLE PRECISION"}) {
 		t.Errorf("type names %q", names)
+	}
+}
+
+// TestLiveDeclaredComputed reads the declared types of computed columns.
+//
+// Verifies: [PROTOCOL Declared types] values of one number type written
+// alike keep its declared type: a VALUES of CASTs, and a UNION of two
+// INTEGER columns, declare INTEGER; INTEGER with SMALLINT is NUMERIC
+// [CLIENT Prepared statements].
+func TestLiveDeclaredComputed(t *testing.T) {
+	t.Parallel()
+
+	c := liveSchema(t, "COMPUTED_TEST")
+	mustRun(t, c, "CREATE TABLE COMPUTED_TEST.T (I INTEGER, J INTEGER, S SMALLINT)")
+
+	written := map[string][]string{
+		"VALUES (CAST(1 AS INTEGER), CAST(2.5 AS DECIMAL(9,2)))":            {"INTEGER", "DECIMAL(9,2)"},
+		"SELECT I FROM COMPUTED_TEST.T UNION SELECT J FROM COMPUTED_TEST.T": {"INTEGER"},
+	}
+
+	for sql, want := range written {
+		st, err := c.Prepare(context.Background(), sql)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		got := make([]string, len(st.Columns()))
+		for i, col := range st.Columns() {
+			got[i] = col.TypeWritten()
+		}
+
+		if !slices.Equal(got, want) {
+			t.Errorf("%s declared %q", sql, got)
+		}
+	}
+
+	mixed := mustRun(t, c, "SELECT I FROM COMPUTED_TEST.T UNION SELECT S FROM COMPUTED_TEST.T")
+	if d := mixed.Columns[0].Declared; d == nil || d.Name != "NUMERIC" {
+		t.Errorf("INTEGER with SMALLINT declared %+v", d)
 	}
 }
