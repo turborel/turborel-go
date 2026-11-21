@@ -151,7 +151,7 @@ func TestConnectToCancels(t *testing.T) {
 		<-done
 	})
 
-	c, err := ConnectTo(context.Background(), TCP(listener.Addr().String()), "ANN", Trust{}, quickConfig(DefaultOffer()))
+	c, err := ConnectTo(context.Background(), TCP(listener.Addr().String()), "ANN", Trust{}, fakeConfig(DefaultOffer()))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -294,7 +294,7 @@ func TestBoundedStreamOpened(t *testing.T) {
 
 	const short = 50 * time.Millisecond
 
-	c, err := Open(context.Background(), silentServer(t), "ANN", Trust{}, quickConfig(DefaultOffer()))
+	c, err := Open(context.Background(), silentServer(t), "ANN", Trust{}, fakeConfig(DefaultOffer()))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -53,7 +53,7 @@ func TestLoginExchange(t *testing.T) {
 	mechanism := &scripted{answers: [][]byte{[]byte("second")}}
 	offer := DefaultOffer().WithAttribute(AttributeApplication, "test")
 
-	c, err := openFake(t, mechanism, quickConfig(offer), func(f *fake) {
+	c, err := openFake(t, mechanism, fakeConfig(offer), func(f *fake) {
 		kind, body := f.request()
 
 		want := encodeRequest(helloRequest{
@@ -97,7 +97,7 @@ func TestLoginRefused(t *testing.T) {
 
 	mechanism := &scripted{}
 
-	_, err := openFake(t, mechanism, quickConfig(DefaultOffer()), func(f *fake) {
+	_, err := openFake(t, mechanism, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.failure(sqlcodeConnection, sqlstateInvalidAuthorization)
 	})
@@ -118,13 +118,13 @@ func TestLoginRefused(t *testing.T) {
 func TestLoginBroken(t *testing.T) {
 	t.Parallel()
 
-	_, err := openFake(t, &scripted{}, quickConfig(DefaultOffer()), func(f *fake) {
+	_, err := openFake(t, &scripted{}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.reply(kindRows, func(w *writer) { w.u32(0) })
 	})
 	assertBroken(t, err, "sent no Ready")
 
-	_, err = openFake(t, &scripted{fail: errScripted}, quickConfig(DefaultOffer()), func(f *fake) {
+	_, err = openFake(t, &scripted{fail: errScripted}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.reply(kindChallenge, func(w *writer) { w.bytes(nil) })
 	})
@@ -132,7 +132,7 @@ func TestLoginBroken(t *testing.T) {
 		t.Errorf("a mechanism's failure: %v", err)
 	}
 
-	_, err = openFake(t, &scripted{verified: errScripted}, quickConfig(DefaultOffer()), func(f *fake) {
+	_, err = openFake(t, &scripted{verified: errScripted}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.ready()
 	})
@@ -145,7 +145,7 @@ func TestLoginBroken(t *testing.T) {
 		many = many.WithAttribute("a", "b")
 	}
 
-	_, err = openFake(t, Trust{}, quickConfig(many), func(*fake) {})
+	_, err = openFake(t, Trust{}, fakeConfig(many), func(*fake) {})
 	assertBroken(t, err, "attributes are more than")
 }
 
@@ -163,7 +163,7 @@ func TestLoginContextDone(t *testing.T) {
 		cancel()
 	})
 
-	_, err := Open(ctx, client, "ANN", Trust{}, quickConfig(DefaultOffer()))
+	_, err := Open(ctx, client, "ANN", Trust{}, fakeConfig(DefaultOffer()))
 	if !errors.Is(err, context.Canceled) {
 		t.Errorf("err = %v, want it caused by the context", err)
 	}
@@ -184,7 +184,7 @@ func TestLoginContextDone(t *testing.T) {
 func TestCompressedAfterReady(t *testing.T) {
 	t.Parallel()
 
-	c, err := openFake(t, Trust{}, quickConfig(DefaultOffer().Compressed()), func(f *fake) {
+	c, err := openFake(t, Trust{}, fakeConfig(DefaultOffer().Compressed()), func(f *fake) {
 		f.request()
 		f.ready(CapabilityCompression, CapabilityPing)
 
@@ -228,7 +228,7 @@ func TestCompressedAfterReady(t *testing.T) {
 func TestReadTimeout(t *testing.T) {
 	t.Parallel()
 
-	c, err := openFake(t, Trust{}, quickConfig(DefaultOffer()), func(f *fake) {
+	c, err := openFake(t, Trust{}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.ready(CapabilityPing)
 		f.request()
@@ -261,7 +261,7 @@ func TestReadTimeout(t *testing.T) {
 func TestMaxBody(t *testing.T) {
 	t.Parallel()
 
-	c, err := openFake(t, Trust{}, quickConfig(DefaultOffer()), func(f *fake) {
+	c, err := openFake(t, Trust{}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.ready(CapabilityPing)
 		f.request()
@@ -303,7 +303,7 @@ func TestTerminateEnds(t *testing.T) {
 		}},
 	}
 	for _, end := range ends {
-		c, err := openFake(t, Trust{}, quickConfig(DefaultOffer()), func(f *fake) {
+		c, err := openFake(t, Trust{}, fakeConfig(DefaultOffer()), func(f *fake) {
 			f.request()
 			f.ready()
 
@@ -329,7 +329,7 @@ func TestTerminateEnds(t *testing.T) {
 func TestNoticesKept(t *testing.T) {
 	t.Parallel()
 
-	c, err := openFake(t, Trust{}, quickConfig(DefaultOffer()), func(f *fake) {
+	c, err := openFake(t, Trust{}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.ready(CapabilityPing)
 		f.request()

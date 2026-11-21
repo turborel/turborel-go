@@ -105,10 +105,13 @@ func openFake(t *testing.T, mechanism Mechanism, config *Config, script func(f *
 	return Open(context.Background(), serve(t, script), "ANN", mechanism, config)
 }
 
-// quickConfig waits a short while at most, so a test of a wait that runs
-// out ends soon.
-func quickConfig(offer Offer) *Config {
-	const quick = 2 * time.Second
+// fakeWait bounds every wait of a test of a scripted server, so a test
+// that hangs ends; it is long, as a slow runner may take seconds to pass
+// a large frame through a pipe, and a test that passes never waits it out.
+const fakeWait = 30 * time.Second
 
-	return &Config{Timeouts: Timeouts{Connect: quick, Read: quick}, Offer: &offer}
+// fakeConfig is the configuration of a connection to a scripted server:
+// offer, and every wait bounded by fakeWait.
+func fakeConfig(offer Offer) *Config {
+	return &Config{Timeouts: Timeouts{Connect: fakeWait, Read: fakeWait}, Offer: &offer}
 }

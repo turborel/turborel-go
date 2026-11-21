@@ -22,7 +22,7 @@ func (f *fake) complete(sqlstate string, active bool) {
 func openGranted(t *testing.T, capabilities []string, script func(f *fake)) *Conn {
 	t.Helper()
 
-	c, err := openFake(t, Trust{}, quickConfig(DefaultOffer()), func(f *fake) {
+	c, err := openFake(t, Trust{}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.ready(capabilities...)
 		script(f)
