@@ -91,7 +91,10 @@ func (c *Conn) ChangeUser(ctx context.Context, user string, mechanism Mechanism)
 ## DESCRIPTION
 
 `Query` sends a Query; a query is answered by its columns, its rows and
-a completion, another statement by a completion. Under autocommit the
+a completion, another statement by a completion. A statement that fails
+before its first batch of rows is answered by its failure alone, no
+columns given; one that fails once a batch was sent fails as its
+failure comes, a `Sink` given the batches before it. Under autocommit the
 request ends its transaction: committed as the statement succeeds,
 rolled back as it fails. `QueryInto` gives the rows to a `Sink` a batch
 at a time. `QueryMany` sends a text of several statements as one
