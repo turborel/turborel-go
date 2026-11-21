@@ -66,6 +66,9 @@ its source type. Types and values nest at most 16 deep.
 | 26 | XML | `XML` | its serialization as CONTENT |
 | 27 | UUID | `UUID` | 16 octets; `String()` and `ParseUUID` its text |
 
+Turborel's exact numbers have at most 38 digits, and a `Decimal` carries
+every one of them. Its units reach past 38 digits, to the protocol's
+limit, and the server refuses such a value with SQLSTATE 22003.
 `NewDecimal`, `NewDecFloat` and `NewInterval` refuse a number the
 protocol cannot carry with an `*Error` of SQLSTATE 22003; `NewDecFloat`
 first rounds a coefficient of more than 34 digits half to even, as

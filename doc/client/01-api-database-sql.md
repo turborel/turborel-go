@@ -72,6 +72,12 @@ TIME ZONE to the microsecond; any of the driver's values as it is; a
 | datetime | `time.Time` |
 | any other | the driver's own value |
 
+An exact number keeps every digit, up to Turborel's 38: one an int64
+cannot hold comes as its text, which scans whole into a `Decimal` or a
+string. Scanned into an int64, such a value fails as out of range;
+scanned into a float64, `database/sql` rounds it to the nearest float64,
+as the program asked. The driver itself never rounds an exact number.
+
 A large object that came by its locator is read whole first. The rows'
 column types give their names as the Information Schema's DATA_TYPE
 does, of the type each was declared with: INTEGER of an INTEGER

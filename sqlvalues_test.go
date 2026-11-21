@@ -1,6 +1,7 @@
 package turborel
 
 import (
+	"context"
 	"database/sql/driver"
 	"errors"
 	"math"
@@ -152,4 +153,27 @@ func TestLocatorRead(t *testing.T) {
 
 	_, err := driverValue(t.Context(), c, Locator{Kind: BinaryLOB, Octets: 1})
 	assertState(t, err, "0F001")
+}
+
+// TestWideExactGivenAsText gives an exact number past an int64 as its
+// text.
+//
+// Verifies: [DESIGN] D2 database/sql is given an exact number of scale 0
+// and at most 18 digits as an int64, and any other, 38 digits among them,
+// as its text, every digit kept; a column of more than 18 digits scans as
+// a string; never a float64 [PROTOCOL Values].
+func TestWideExactGivenAsText(t *testing.T) {
+	t.Parallel()
+
+	wide, text := thirtyEight(t)
+
+	got, err := driverValue(context.Background(), nil, wide)
+	if err != nil || got != text {
+		t.Errorf("38 digits given as %#v, %v", got, err)
+	}
+
+	if scanType(ExactType{Precision: 38}) != reflect.TypeFor[string]() ||
+		scanType(ExactType{Precision: 18}) != reflect.TypeFor[int64]() {
+		t.Error("the scan types of exact columns")
+	}
 }
