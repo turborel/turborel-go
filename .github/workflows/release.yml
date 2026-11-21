@@ -1,8 +1,8 @@
 # Builds and checks a release, run only by hand (VERSIONING.md,
 # Publishing). It publishes nothing: Go has no registry to upload to, and
 # a version is published by pushing its tag, which the Go module proxy
-# then fetches. Those steps are written below and left disabled; the
-# owner enables them once every turborel driver is done.
+# then fetches. Those steps are written below and left disabled; a
+# maintainer enables them once every turborel driver is done.
 name: release
 
 on:
@@ -44,7 +44,7 @@ jobs:
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
           echo "Would publish v$version"
 
-      # Publishing, disabled: the owner enables these steps once every
+      # Publishing, disabled: a maintainer enables these steps once every
       # turborel driver is done (VERSIONING.md, Publishing), by removing
       # each `if: false`, giving the job `contents: write`, and letting
       # checkout keep its credentials so the tag can be pushed.
