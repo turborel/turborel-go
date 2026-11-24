@@ -231,7 +231,10 @@ func TestReadTimeout(t *testing.T) {
 	c, err := openFake(t, Trust{}, fakeConfig(DefaultOffer()), func(f *fake) {
 		f.request()
 		f.ready(CapabilityPing)
-		f.request()
+		// The Ping may not arrive whole: a slow runner may run the
+		// client's 20 ms out as it writes, which loses the connection
+		// all the same.
+		_, _, _ = readFrame(f.r, maxBody, false)
 		time.Sleep(200 * time.Millisecond)
 	})
 	if err != nil {
