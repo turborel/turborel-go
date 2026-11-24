@@ -107,5 +107,6 @@ cancelled, `EventCancelled`; one whose session ends, `EventEnded`.
 An ID of no connection the user may see is refused with SQLSTATE 08003;
 a breakpoint in a routine the user holds no DEBUG on, with 42000,
 SQLCODE -104; an action the state does not allow, as `Resume` of a
-target not paused, with TBD01. The session goes on after each. [The
-Debugger](../client/31-debugger.md) gives every call.
+target not paused, with TBD01. The session goes on after each.
+[Debugging Routines](../client/31-debugging.md) in the API Reference
+gives every call.

@@ -1,4 +1,4 @@
-# The Debugger
+# Debugging Routines
 
 [Contents](README.md)
 
@@ -137,4 +137,4 @@ The examples of [Debugging Routines](../user/11-debugging.md).
 
 ## SEE ALSO
 
-[Debugging Routines](../user/11-debugging.md), [Connections](21-connections.md), [Statements and Cursors](22-statements.md), [Errors](30-errors.md).
+[Debugging Routines](../user/11-debugging.md) in the User's Guide, [Connections](21-connections.md), [Statements and Cursors](22-statements.md), [Errors](30-errors.md).
