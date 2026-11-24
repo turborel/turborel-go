@@ -521,7 +521,7 @@ coverage (D7).
 #### D15. The sample frames, a fixture copied at a pinned commit
 
 `testdata/05-protocol-frames.tsv` is Turborel's
-`doc/client/05-protocol-frames.tsv` copied byte for byte at 1afa44c2,
+`doc/client/05-protocol-frames.tsv` copied byte for byte at 5863fe65,
 the commit CONFORMANCE.md names, and moves with that pin. A copy, rather
 than a read of a Turborel checkout in a test skipped where there is
 none, runs wherever the unit tests run, on every platform, and gives the

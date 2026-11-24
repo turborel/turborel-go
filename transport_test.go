@@ -250,7 +250,7 @@ func assertDefaultOffer(t *testing.T) {
 	t.Helper()
 
 	all := Capabilities()
-	if len(all) != 20 || all[0] != CapabilityNotices || all[19] != CapabilityParameterModes {
+	if len(all) != 21 || all[0] != CapabilityNotices || all[20] != CapabilityDebugger {
 		t.Errorf("capabilities %q", all)
 	}
 
@@ -258,7 +258,7 @@ func assertDefaultOffer(t *testing.T) {
 	asked := d.Capabilities
 
 	if slices.Contains(asked, CapabilityCompression) || !slices.Contains(asked, CapabilityDeclaredTypes) ||
-		!slices.Contains(asked, CapabilityParameterModes) || len(asked) != 19 || d.CompressFrom != 1024 {
+		!slices.Contains(asked, CapabilityDebugger) || len(asked) != 20 || d.CompressFrom != 1024 {
 		t.Errorf("default offer %+v", d)
 	}
 }
@@ -266,9 +266,9 @@ func assertDefaultOffer(t *testing.T) {
 // TestOffers asks for what a connection asks for.
 //
 // Verifies: [CLIENT What a connection asks for] by default every
-// capability but compression, in the protocol's order, `declared-types`
-// and `parameter-modes` among them [PROTOCOL Capabilities]; an offer of none;
-// one of compression added once; connection attributes added. A
+// capability but compression, in the protocol's order, `declared-types`,
+// `parameter-modes` and `debugger` among them [PROTOCOL Capabilities]; an
+// offer of none; one of compression added once; connection attributes added. A
 // connection waits 30 seconds to connect and log in, and without limit
 // after, by default [CLIENT Timeouts].
 func TestOffers(t *testing.T) {
@@ -279,7 +279,7 @@ func TestOffers(t *testing.T) {
 	d := DefaultOffer()
 
 	z := d.Compressed().Compressed()
-	if n := len(z.Capabilities); n != 20 || len(NoOffer().Capabilities) != 0 {
+	if n := len(z.Capabilities); n != 21 || len(NoOffer().Capabilities) != 0 {
 		t.Errorf("compressed offer of %d", n)
 	}
 

@@ -18,7 +18,8 @@ the driver meets them, and the failures it finds itself.
 | 24, 26 | A cursor's state; a prepared statement of no such number | goes on |
 | 28 | Credentials refused | lost, as the connection is made |
 | 40 | A transaction rolled back, as a commit that failed | goes on |
-| TB | Turborel's own: TB920, a statement cancelled; TBR01, a replica behind | goes on |
+| 42 | A syntax error or access rule violation, as a breakpoint in a routine the user holds no DEBUG on | goes on |
+| TB | Turborel's own: TB920, a statement cancelled; TBR01, a replica behind; TBD01, a debugger's action its state does not allow | goes on |
 
 ## Failures the driver finds itself
 

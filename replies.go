@@ -73,7 +73,7 @@ func (c *Conn) drained(kind byte, body []byte) error {
 // any other reply ends its request's.
 func endsRequest(kind byte, body []byte) bool {
 	switch kind {
-	case kindDescription, kindRows, kindNotice, kindStatus:
+	case kindDescription, kindRows, kindNotice, kindStatus, kindEvent:
 		return false
 	case kindComplete:
 		head, ok := completedHead(kind, body)

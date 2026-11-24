@@ -95,14 +95,18 @@ func (c *Conn) receive() (reply, error) {
 	}
 }
 
-// took takes rep, a Notice or a Status, as the session's; any other reply
-// it gives, its end noted.
+// took takes rep, a Notice or a Status, as the session's, and a
+// debugger's Event, kept until Wait reads it, as it never ends a
+// request's replies [PROTOCOL Event 'W']; any other reply it gives, its
+// end noted.
 func (c *Conn) took(rep reply) reply {
 	switch r := rep.(type) {
 	case noticeReply:
 		c.notice(r.notice)
 	case statusReply:
 		c.settings[r.name] = r.value
+	case eventReply:
+		c.events = append(c.events, r.event)
 	default:
 		return c.noted(rep)
 	}
@@ -246,7 +250,8 @@ func (c *Conn) Terminate() error {
 var errTerminating = errors.New("a reply read past as the session ends")
 
 // terminating reads a reply after Terminate: an Error is the session's
-// end failing; a Notice, a Status or a Pong is read past
+// end failing; a Notice, a Status, a Pong or a debugger's Event is read
+// past
 // (errTerminating); any other is out of place.
 func (c *Conn) terminating() error {
 	kind, body, err := readFrame(c.r, c.maxBody, c.compressing)
@@ -262,7 +267,7 @@ func (c *Conn) terminating() error {
 	switch r := rep.(type) {
 	case errorReply:
 		return r.failure
-	case noticeReply, statusReply, pongReply:
+	case noticeReply, statusReply, pongReply, eventReply:
 		return errTerminating
 	default:
 		return broken("the server answered Terminate")

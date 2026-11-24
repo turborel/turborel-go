@@ -43,6 +43,7 @@ type Conn struct {
 	granted       granted
 	settings      map[string]string
 	notices       []Notice
+	events        []DebugEvent
 	handler       func(Notice)
 	timeouts      Timeouts
 	step          time.Duration

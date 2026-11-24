@@ -193,6 +193,19 @@ func (r *reader) reply(kind byte) reply {
 	case kindPong:
 		return pongReply{}
 	default:
+		return r.debuggerReply(kind)
+	}
+}
+
+// debuggerReply reads the body of a reply of the debugger's of kind; nil
+// for a kind no reply has.
+func (r *reader) debuggerReply(kind byte) reply {
+	switch kind {
+	case kindDebugged:
+		return r.debugged()
+	case kindEvent:
+		return r.event()
+	default:
 		r.at = len(r.buf)
 
 		return nil

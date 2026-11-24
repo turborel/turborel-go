@@ -120,7 +120,7 @@ func TestSampleFramesRead(t *testing.T) {
 		}
 	}
 
-	if len(samples) != 148 || sides["client"] != 38 || sides["server"] != 110 {
+	if len(samples) != 166 || sides["client"] != 47 || sides["server"] != 119 {
 		t.Errorf("%d samples, %v", len(samples), sides)
 	}
 }
@@ -132,7 +132,7 @@ func TestSampleFramesRead(t *testing.T) {
 // its meaning gives, -0 of its sign bit, whatever capabilities it needs,
 // as the tail of each is read where it comes [PROTOCOL Replies] [PROTOCOL The tail]
 // [PROTOCOL Values] [PROTOCOL Data types] [PROTOCOL Declared types]
-// [PROTOCOL Parameter modes].
+// [PROTOCOL Parameter modes] [PROTOCOL Debugged 'V'] [PROTOCOL Event 'W'].
 func TestSampleFramesDecoded(t *testing.T) {
 	t.Parallel()
 
@@ -307,6 +307,7 @@ func expectedRequests() map[string]request {
 
 	maps.Copy(requests, statementRequests())
 	maps.Copy(requests, otherRequests())
+	maps.Copy(requests, debugRequests())
 
 	return requests
 }
@@ -350,5 +351,23 @@ func otherRequests() map[string]request {
 		}),
 		"copy-end":         copyEndRequest{},
 		"copy-end-abandon": copyEndRequest{abandon: true},
+	}
+}
+
+// debugRequests is the request of each client sample of the debugger.
+func debugRequests() map[string]request {
+	return map[string]request{
+		"debug-identify": debugRequest{what: debugIdentify},
+		"debug-attach":   debugRequest{what: debugAttach, connection: 2},
+		"debug-detach":   debugRequest{what: debugDetach},
+		"debug-break": debugRequest{
+			what: debugBreak, kind: RoutineProcedure, routine: QualifiedName{"ANN", "RAISE_PAY"}, line: 4,
+			condition: "PCT > 5",
+		},
+		"debug-clear":       debugRequest{what: debugClear, number: 1},
+		"debug-breakpoints": debugRequest{what: debugBreakpoints},
+		"debug-resume":      debugRequest{what: debugResume, action: StepOver},
+		"debug-interrupt":   debugRequest{what: debugInterrupt},
+		"debug-stack":       debugRequest{what: debugStack},
 	}
 }

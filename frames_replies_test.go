@@ -17,7 +17,7 @@ func expectedReplies(t *testing.T) map[string]reply {
 
 	replies := sessionReplies()
 	for _, more := range []map[string]reply{
-		completionReplies(), statusReplies(), columnReplies(), typeReplies(), moreTypeReplies(),
+		completionReplies(), statusReplies(), columnReplies(), typeReplies(), moreTypeReplies(), debugReplies(),
 		valueReplies(t), moreValueReplies(t),
 	} {
 		maps.Copy(replies, more)
@@ -93,6 +93,31 @@ func calledReply() reply {
 		called: &called{procedure: QualifiedName{"S", "P"}, parameters: []Parameter{
 			{Type: integer, Mode: ModeIn, Ordinal: 1}, {Type: integer, Mode: ModeOut, Ordinal: 2},
 		}},
+	}
+}
+
+// debugReplies is the reply of each sample of the debugger.
+func debugReplies() map[string]reply {
+	raisePay := QualifiedName{"ANN", "RAISE_PAY"}
+	set := []Breakpoint{{Number: 1, Routine: raisePay, Line: 4}}
+	pause := &Pause{Breakpoint: 1, Frames: []StackFrame{{
+		Origin:  &Origin{Kind: RoutineProcedure, Specific: raisePay, Name: raisePay},
+		Visible: true, Place: 1, Placed: true, Line: 4, Column: 3,
+		Parameters: []Variable{{Name: "PCT", Type: "INTEGER", Value: DecimalOf(10, 0)}},
+		Variables:  []Variable{{Name: "N", Type: "INTEGER", Value: Null{}}},
+		Cursors:    []FrameCursor{{Name: "C", Query: "SELECT ID FROM STAFF"}},
+	}}}
+
+	return map[string]reply{
+		"debugged-connection":  debuggedReply{what: debuggedConnection, connection: 2},
+		"debugged-breakpoint":  debuggedReply{what: debuggedBreakpoint, breakpoints: set},
+		"debugged-breakpoints": debuggedReply{what: debuggedBreakpoints, breakpoints: set},
+		"debugged-running":     debuggedReply{what: debuggedStack},
+		"debugged-stack":       debuggedReply{what: debuggedStack, pause: pause},
+		"event-paused":         eventReply{event: DebugEvent{Kind: EventPaused, Pause: pause}},
+		"event-timed-out":      eventReply{event: DebugEvent{Kind: EventTimedOut}},
+		"event-cancelled":      eventReply{event: DebugEvent{Kind: EventCancelled}},
+		"event-ended":          eventReply{event: DebugEvent{Kind: EventEnded}},
 	}
 }
 
