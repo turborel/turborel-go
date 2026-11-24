@@ -78,6 +78,15 @@ string. Scanned into an int64, such a value fails as out of range;
 scanned into a float64, `database/sql` rounds it to the nearest float64,
 as the program asked. The driver itself never rounds an exact number.
 
+A CALL's `?`s take arguments by their parameters' modes, as a server
+granting `parameter-modes` tells them: an IN one a value, an OUT one an
+`sql.Out`, given no value, whose `Dest` the CALL's row fills, and an
+INOUT one an `sql.Out` with `In` set, its `Dest`'s value sent and filled
+again, or a value, its output not read. A `Dest` that is an
+`sql.Scanner` is filled by its `Scan`; another takes the value as
+`Rows.Next` gives it, or as another of Go's numbers where it converts
+back the same. `NumInput` counts a CALL's OUT `?`s too.
+
 A large object that came by its locator is read whole first. The rows'
 column types give their names as the Information Schema's DATA_TYPE
 does, of the type each was declared with: INTEGER of an INTEGER
@@ -104,7 +113,7 @@ takes another connection.
 | SQLSTATE | When |
 |---|---|
 | 08001 | SQLCODE -919: `sql.Open` of a URI that is no `turborel://` URI, or no server kept |
-| TB910 | SQLCODE -910: an isolation level none of SQL's; a named argument; a Go value of no type the driver sends; a value scanned into a type it is not; a result of no identity value, or of no rows counted |
+| TB910 | SQLCODE -910: an isolation level none of SQL's; a named argument; a Go value of no type the driver sends; a value scanned into a type it is not; a result of no identity value, or of no rows counted; an `sql.Out` for a `?` not of an OUT or INOUT parameter, a value for an OUT one, an `sql.Out` without `In` for an INOUT one, of no pointer, or of a `Dest` that cannot take the output whole |
 
 ## EXAMPLES
 

@@ -52,11 +52,18 @@ func (c *Conn) SetQueryAttributes(attributes []Attribute) error
 
 func (c *Conn) Prepare(ctx context.Context, sql string) (*Statement, error)
 func (s *Statement) Parameters() []Parameter
+func (s *Statement) Inputs() []Parameter
+func (s *Statement) Procedure() (QualifiedName, bool)
 func (s *Statement) Columns() []Column
 type Parameter struct {
 	Varying bool
 	Type    DataType
+	Mode    ParameterMode
+	Ordinal uint32
 }
+type ParameterMode uint8 // ModeIn 1, ModeInOut 2, ModeOut 4
+func (m ParameterMode) String() string
+type QualifiedName struct{ Schema, Name string }
 type Column struct {
 	Name     string
 	Named    bool
@@ -117,6 +124,15 @@ the type its tag says, an exact numeric one as NUMERIC(10,0), an
 approximate one as FLOAT(53). A `Parameter` is a `?`'s type, `Varying`
 where the statement does not decide it.
 
+Granted `parameter-modes`, which connecting asks for, a CALL's
+`Parameters` are every `?` in the order written, its OUT ones too, each
+with the `Mode` and `Ordinal` position of the procedure's parameter
+whose argument holds it, and `Procedure` gives the procedure's specific
+name. `Inputs` are the `?`s `Execute` takes values for, the IN and INOUT
+ones; `Execute` gives the OUT and INOUT ones' values as one row of the
+CALL's `Columns`. A `?` of another statement, or of a CALL whose modes
+were not told, is IN, of `Ordinal` 0, and `Parameters` are the inputs.
+
 A completion's tail is kept as the connection's last: `RowsAffected`
 with row-counts, `LastGenerated` with generated-values, `ServerTime`
 with row-counts, `CommitPosition` with commit-position, `Conditions` with
@@ -137,7 +153,7 @@ the connection lost.
 | 40002 | A commit, of autocommit, that failed |
 | TB920 | SQLCODE -920: the statement was cancelled |
 | 08006 | SQLCODE -919, before anything is sent, the connection kept: query attributes past the bounds a server takes |
-| 08006 | SQLCODE -919: a capability not granted, a reply out of its place or malformed, declared types not one for each column among them, or the connection lost |
+| 08006 | SQLCODE -919: a capability not granted, a reply out of its place or malformed, declared types not one for each column, or a parameter mode of no code or position of 0, among them; or the connection lost |
 | TB916 | SQLCODE -916: a reply holding a value the driver cannot take, the rest of the statement's replies read past, the connection kept; past turborel's limits, -900 (0A000) |
 
 ## EXAMPLES
@@ -146,7 +162,7 @@ The examples of [Running Queries](../user/03-queries.md), [Prepared Statements](
 
 ## STANDARD
 
-[PROTOCOL Query 'Q'], [PROTOCOL Prepare 'P'], [PROTOCOL Execute 'E'], [PROTOCOL Fetch 'F'], [PROTOCOL Close 'C'], [PROTOCOL Deallocate 'D'], [PROTOCOL Describe 'Y'], [PROTOCOL Prepared 'P'], [PROTOCOL Description 'D'], [PROTOCOL Declared types], [PROTOCOL Complete 'K'] and [PROTOCOL The tail] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Running statements], [CLIENT Prepared statements] and [CLIENT Controlling the session] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
+[PROTOCOL Query 'Q'], [PROTOCOL Prepare 'P'], [PROTOCOL Execute 'E'], [PROTOCOL Fetch 'F'], [PROTOCOL Close 'C'], [PROTOCOL Deallocate 'D'], [PROTOCOL Describe 'Y'], [PROTOCOL Prepared 'P'], [PROTOCOL Description 'D'], [PROTOCOL Declared types], [PROTOCOL Parameter modes], [PROTOCOL Complete 'K'] and [PROTOCOL The tail] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Running statements], [CLIENT Prepared statements] and [CLIENT Controlling the session] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md).
 
 ## SEE ALSO
 

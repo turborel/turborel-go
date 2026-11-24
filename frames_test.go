@@ -120,7 +120,7 @@ func TestSampleFramesRead(t *testing.T) {
 		}
 	}
 
-	if len(samples) != 147 || sides["client"] != 38 || sides["server"] != 109 {
+	if len(samples) != 148 || sides["client"] != 38 || sides["server"] != 110 {
 		t.Errorf("%d samples, %v", len(samples), sides)
 	}
 }
@@ -131,7 +131,8 @@ func TestSampleFramesRead(t *testing.T) {
 // a frame from a stream, inflated if compressed, and decoded to the reply
 // its meaning gives, -0 of its sign bit, whatever capabilities it needs,
 // as the tail of each is read where it comes [PROTOCOL Replies] [PROTOCOL The tail]
-// [PROTOCOL Values] [PROTOCOL Data types] [PROTOCOL Declared types].
+// [PROTOCOL Values] [PROTOCOL Data types] [PROTOCOL Declared types]
+// [PROTOCOL Parameter modes].
 func TestSampleFramesDecoded(t *testing.T) {
 	t.Parallel()
 

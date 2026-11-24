@@ -83,7 +83,7 @@ func replyCases() []replyCase {
 			column.encode(w)
 		}), preparedReply{
 			statement:  1,
-			parameters: []Parameter{{Varying: true, Type: VaryingType{Length: 1 << 20}}},
+			parameters: []Parameter{{Varying: true, Type: VaryingType{Length: 1 << 20}, Mode: ModeIn}},
 			columns:    []Column{column},
 		}},
 		{kindDescription, body(func(w *writer) {

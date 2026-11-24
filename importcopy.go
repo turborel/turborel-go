@@ -27,7 +27,7 @@ func (c *Conn) copies(insert *Statement, how Import) bool {
 		return false
 	}
 
-	for _, p := range insert.parameters {
+	for _, p := range insert.inputs {
 		if _, isLOB := lobParameter(p.Type); isLOB {
 			return false
 		}

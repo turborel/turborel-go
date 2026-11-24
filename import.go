@@ -219,7 +219,7 @@ func (c *Conn) Import(ctx context.Context, source Source, how Import, rejected f
 			return Imported{}, before(sqlCause(err))
 		}
 
-		run := copyRun{how: how, parameters: insert.parameters}
+		run := copyRun{how: how, parameters: insert.inputs}
 
 		return run.run(ctx, c, source, table, columns)
 	}
@@ -369,7 +369,7 @@ func (r *insertRun) rows(source Source) (Imported, *ImportError) {
 // row that fails is skipped if it alone was undone and skipping is
 // asked.
 func (r *insertRun) row(record *Record) *ImportError {
-	wanted := len(r.insert.parameters)
+	wanted := len(r.insert.inputs)
 	if len(record.Values) != wanted {
 		message := fmt.Sprintf("[DESIGN] %d fields, for %d columns", len(record.Values), wanted)
 
@@ -402,7 +402,7 @@ func (r *insertRun) row(record *Record) *ImportError {
 // column assigned to it, each long one for a large object's sent by a
 // locator.
 func (r *insertRun) execute(values []Value) error {
-	given, failure := assigned(values, r.insert.parameters)
+	given, failure := assigned(values, r.insert.inputs)
 	if failure != nil {
 		return failure
 	}
@@ -421,7 +421,7 @@ func (r *insertRun) execute(values []Value) error {
 // object's parameter sent ahead by a locator, a piece at a time.
 func (r *insertRun) located(values []Value) ([]Value, error) {
 	for i, v := range values {
-		kind, isLOB := lobParameter(r.insert.parameters[i].Type)
+		kind, isLOB := lobParameter(r.insert.inputs[i].Type)
 		if !isLOB {
 			continue
 		}

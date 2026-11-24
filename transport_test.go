@@ -244,31 +244,42 @@ func TestCancelSendsKey(t *testing.T) {
 	}
 }
 
+// assertDefaultOffer checks every capability is named in the protocol's
+// order, and the default offer asks for each but compression.
+func assertDefaultOffer(t *testing.T) {
+	t.Helper()
+
+	all := Capabilities()
+	if len(all) != 20 || all[0] != CapabilityNotices || all[19] != CapabilityParameterModes {
+		t.Errorf("capabilities %q", all)
+	}
+
+	d := DefaultOffer()
+	asked := d.Capabilities
+
+	if slices.Contains(asked, CapabilityCompression) || !slices.Contains(asked, CapabilityDeclaredTypes) ||
+		!slices.Contains(asked, CapabilityParameterModes) || len(asked) != 19 || d.CompressFrom != 1024 {
+		t.Errorf("default offer %+v", d)
+	}
+}
+
 // TestOffers asks for what a connection asks for.
 //
 // Verifies: [CLIENT What a connection asks for] by default every
 // capability but compression, in the protocol's order, `declared-types`
-// among them [PROTOCOL Capabilities]; an offer of none;
+// and `parameter-modes` among them [PROTOCOL Capabilities]; an offer of none;
 // one of compression added once; connection attributes added. A
 // connection waits 30 seconds to connect and log in, and without limit
 // after, by default [CLIENT Timeouts].
 func TestOffers(t *testing.T) {
 	t.Parallel()
 
-	all := Capabilities()
-	if len(all) != 19 || all[0] != CapabilityNotices || all[18] != CapabilityDeclaredTypes {
-		t.Errorf("capabilities %q", all)
-	}
+	assertDefaultOffer(t)
 
 	d := DefaultOffer()
-	asked := d.Capabilities
-	if slices.Contains(asked, CapabilityCompression) || !slices.Contains(asked, CapabilityDeclaredTypes) ||
-		len(asked) != 18 || d.CompressFrom != 1024 {
-		t.Errorf("default offer %+v", d)
-	}
 
 	z := d.Compressed().Compressed()
-	if n := len(z.Capabilities); n != 19 || len(NoOffer().Capabilities) != 0 {
+	if n := len(z.Capabilities); n != 20 || len(NoOffer().Capabilities) != 0 {
 		t.Errorf("compressed offer of %d", n)
 	}
 

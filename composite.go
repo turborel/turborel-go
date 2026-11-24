@@ -3,6 +3,8 @@ package turborel
 // Composite fields [PROTOCOL Composite fields]: a row, a column, a
 // parameter and a failure, as the replies carry them.
 
+import "strconv"
+
 // Column is a column of a result: its name, if it has one, its type,
 // and whether it is NOT NULL. Type is what its values are read by; a
 // type's tag can stand for several declared types, so an INTEGER
@@ -17,13 +19,47 @@ type Column struct {
 	Declared *Declared
 }
 
-// Parameter is the type of a statement's `?` parameter. Varying says the
-// server gives it CHARACTER VARYING of the longest length, as it does
-// one whose type the statement does not decide; its type is given all
-// the same.
+// Parameter is a statement's `?` parameter: its type, and, of a CALL, the
+// mode and ordinal position of the procedure's parameter whose argument
+// holds it, as a server granting `parameter-modes` tells them; any other
+// is IN, of Ordinal 0. Varying says the server gives it CHARACTER VARYING
+// of the longest length, as it does one whose type the statement does not
+// decide; its type is given all the same.
 type Parameter struct {
 	Varying bool
 	Type    DataType
+	Mode    ParameterMode
+	Ordinal uint32
+}
+
+// ParameterMode is the mode of a procedure's parameter, coded as the
+// protocol codes it [PROTOCOL Parameter modes].
+type ParameterMode uint8
+
+// The parameter modes.
+const (
+	// ModeIn is an input parameter's: an execution gives its value.
+	ModeIn ParameterMode = 1
+	// ModeInOut is an input and output parameter's: an execution gives
+	// its value and the CALL's row gives it back.
+	ModeInOut ParameterMode = 2
+	// ModeOut is an output parameter's: given no value, it comes back in
+	// the CALL's row.
+	ModeOut ParameterMode = 4
+)
+
+// String gives the mode as SQL writes it: IN, INOUT or OUT.
+func (m ParameterMode) String() string {
+	switch m {
+	case ModeIn:
+		return "IN"
+	case ModeInOut:
+		return "INOUT"
+	case ModeOut:
+		return "OUT"
+	}
+
+	return "mode " + strconv.Itoa(int(m))
 }
 
 // column reads a column: its named flag and name, its type, its not null
@@ -70,7 +106,7 @@ func (r *reader) parameters() []Parameter {
 
 	var list []Parameter
 	for i := uint32(0); r.more(i, n); i++ {
-		list = append(list, Parameter{Varying: r.flag(), Type: r.dataType()})
+		list = append(list, Parameter{Varying: r.flag(), Type: r.dataType(), Mode: ModeIn})
 	}
 
 	return list

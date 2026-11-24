@@ -126,7 +126,7 @@ func assertStatusOrder(t *testing.T, names []string) {
 
 // TestLiveCallOutputs gives a CALL's output parameters as a row.
 //
-// Verifies: [PROTOCOL Prepared 'P'] a CALL's parameters are its inputs
+// Verifies: [PROTOCOL Prepared 'P'] a CALL's Prepared names its inputs
 // alone, an INOUT `?` among them, and its columns one for each `?` of an
 // OUT or INOUT parameter, in the procedure's order, named as each;
 // executed, its outputs' values come as one row of those columns before
@@ -158,7 +158,7 @@ func TestLiveCallOutputs(t *testing.T) {
 	}
 }
 
-// prepareCall prepares sql, a CALL, checking its parameters and columns.
+// prepareCall prepares sql, a CALL, checking its inputs and columns.
 func prepareCall(t *testing.T, c *Conn, sql string, parameters int, columns []string) *Statement {
 	t.Helper()
 
@@ -172,8 +172,8 @@ func prepareCall(t *testing.T, c *Conn, sql string, parameters int, columns []st
 		names = append(names, column.Name)
 	}
 
-	if len(st.Parameters()) != parameters || !slices.Equal(names, columns) {
-		t.Errorf("%s: %d parameters, columns %v", sql, len(st.Parameters()), names)
+	if len(st.Inputs()) != parameters || !slices.Equal(names, columns) {
+		t.Errorf("%s: %d inputs, columns %v", sql, len(st.Inputs()), names)
 	}
 
 	return st

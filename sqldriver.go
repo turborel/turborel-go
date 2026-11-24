@@ -260,11 +260,16 @@ func (c *sqlConn) ResetSession(context.Context) error {
 // IsValid says whether the connection is not lost.
 func (c *sqlConn) IsValid() bool { return c.conn.lost == nil }
 
-// CheckNamedValue makes a Go value the Value it is sent as; a named
-// argument is refused, as the driver's parameters are each a ?.
+// CheckNamedValue makes a Go value the Value it is sent as, an sql.Out
+// kept for its CALL to bind; a named argument is refused, as the
+// driver's parameters are each a ?.
 func (c *sqlConn) CheckNamedValue(nv *driver.NamedValue) error {
 	if nv.Name != "" {
 		return misused("the parameter " + nv.Name + " is named; the driver's parameters are each a ?")
+	}
+
+	if _, ok := nv.Value.(sql.Out); ok {
+		return nil
 	}
 
 	v, err := valueOf(nv.Value)
@@ -324,8 +329,9 @@ func (s *sqlStmt) Close() error {
 	return s.conn.conn.Deallocate(context.Background(), s.st)
 }
 
-// NumInput gives the statement's parameters.
-func (s *sqlStmt) NumInput() int { return len(s.st.parameters) }
+// NumInput gives the statement's `?`s: of a CALL whose modes the server
+// told, its OUT ones too, each given an sql.Out; else its inputs.
+func (s *sqlStmt) NumInput() int { return len(s.st.Parameters()) }
 
 // Exec executes the statement.
 func (s *sqlStmt) Exec(args []driver.Value) (driver.Result, error) {
@@ -347,35 +353,23 @@ func named(args []driver.Value) []driver.NamedValue {
 	return all
 }
 
-// values gives args as the driver's values.
-func values(args []driver.NamedValue) ([]Value, error) {
-	all := make([]Value, len(args))
-
-	for i, a := range args {
-		v, err := valueOf(a.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		all[i] = v
-	}
-
-	return all, nil
-}
-
 // ExecContext executes the statement with args.
 func (s *sqlStmt) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
 	if err := s.conn.usable(); err != nil {
 		return nil, err
 	}
 
-	given, err := values(args)
+	given, outs, err := s.bind(args)
 	if err != nil {
 		return nil, err
 	}
 
 	out, err := s.conn.conn.Execute(ctx, s.st, given)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := fill(ctx, s.conn.conn, out, outs); err != nil {
 		return nil, err
 	}
 
@@ -394,18 +388,23 @@ func (s *sqlStmt) rows(ctx context.Context, args []driver.NamedValue) (*sqlRows,
 		return nil, err
 	}
 
-	given, err := values(args)
+	given, outs, err := s.bind(args)
 	if err != nil {
 		return nil, err
 	}
 
 	c := s.conn.conn
-	if len(s.st.columns) == 0 {
-		if _, err := c.Execute(ctx, s.st, given); err != nil {
+	if len(s.st.columns) == 0 || len(outs) > 0 {
+		out, err := c.Execute(ctx, s.st, given)
+		if err != nil {
 			return nil, err
 		}
 
-		return &sqlRows{ctx: ctx, conn: c, st: s.st}, nil
+		if err := fill(ctx, c, out, outs); err != nil {
+			return nil, err
+		}
+
+		return &sqlRows{ctx: ctx, conn: c, st: s.st, rows: out.Rows}, nil
 	}
 
 	batch, err := c.OpenCursor(ctx, s.st, given, fetchRows)

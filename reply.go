@@ -47,6 +47,7 @@ type preparedReply struct {
 	statement  uint32
 	parameters []Parameter
 	columns    []Column
+	called     *called
 }
 
 // descriptionReply is the columns of the rows that follow [PROTOCOL
@@ -172,7 +173,7 @@ func (r *reader) reply(kind byte) reply {
 	case kindReady:
 		return readyReply{authorization: r.str(), key: r.key(), capabilities: r.strs(), server: r.str()}
 	case kindPrepared:
-		return preparedReply{statement: r.u32(), parameters: r.parameters(), columns: r.describedColumns()}
+		return r.prepared()
 	case kindDescription:
 		return descriptionReply{columns: r.describedColumns()}
 	case kindRows:
@@ -196,6 +197,15 @@ func (r *reader) reply(kind byte) reply {
 
 		return nil
 	}
+}
+
+// prepared reads a Prepared: the statement, its input parameters, its
+// columns, and its tail.
+func (r *reader) prepared() preparedReply {
+	p := preparedReply{statement: r.u32(), parameters: r.parameters(), columns: r.columns()}
+	p.called = r.preparedTail(p.columns)
+
+	return p
 }
 
 // completion reads a Complete's body and its tail [PROTOCOL Complete

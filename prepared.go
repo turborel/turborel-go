@@ -13,15 +13,43 @@ import "context"
 // Statement is a statement prepared on the connection that prepared it,
 // valid across transactions until deallocated.
 type Statement struct {
-	number     uint32
-	parameters []Parameter
-	columns    []Column
+	number  uint32
+	inputs  []Parameter
+	columns []Column
+	called  *called
 }
 
-// Parameters gives the type each `?` takes, in the order of the marks.
-func (s *Statement) Parameters() []Parameter { return s.parameters }
+// Parameters gives each `?`, in the order written: its type, and, of a
+// CALL, the mode and ordinal position of the procedure's parameter whose
+// argument holds it, OUT ones too, as a server granting
+// `parameter-modes` tells them [PROTOCOL Parameter modes]. Told none,
+// they are the inputs, each IN.
+func (s *Statement) Parameters() []Parameter {
+	if s.called != nil {
+		return s.called.parameters
+	}
 
-// Columns gives a query's columns; none of another statement.
+	return s.inputs
+}
+
+// Inputs gives the `?`s an execution gives values for, in order: of a
+// CALL, not those of OUT parameters.
+func (s *Statement) Inputs() []Parameter { return s.inputs }
+
+// Procedure gives the specific name of the procedure a CALL invokes, as
+// a server granting `parameter-modes` tells it; false of another
+// statement, or untold.
+func (s *Statement) Procedure() (QualifiedName, bool) {
+	if s.called == nil {
+		return QualifiedName{}, false
+	}
+
+	return s.called.procedure, true
+}
+
+// Columns gives a query's columns; of a CALL, one for each `?` of an
+// OUT or INOUT parameter, in the procedure's order, whose values Execute
+// gives as a row; none of another statement.
 func (s *Statement) Columns() []Column { return s.columns }
 
 // Batch is rows of a cursor, and whether it has more.
@@ -56,7 +84,7 @@ func (c *Conn) prepared() (*Statement, error) {
 
 	switch r := rep.(type) {
 	case preparedReply:
-		return &Statement{number: r.statement, parameters: r.parameters, columns: r.columns}, nil
+		return &Statement{number: r.statement, inputs: r.parameters, columns: r.columns, called: r.called}, nil
 	case errorReply:
 		return nil, r.failure
 	default:

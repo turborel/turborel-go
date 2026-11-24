@@ -29,6 +29,7 @@ const (
 	CapabilityFetchEnds            = "fetch-ends"
 	CapabilityConditions           = "conditions"
 	CapabilityDeclaredTypes        = "declared-types"
+	CapabilityParameterModes       = "parameter-modes"
 )
 
 // AttributeApplication is the connection attribute that names the
@@ -43,6 +44,7 @@ func Capabilities() []string {
 		CapabilityQueryAttributes, CapabilityConnectionAttributes, CapabilityMultiStatement,
 		CapabilityCompression, CapabilityCommitPosition, CapabilityCopy, CapabilityRowCounts,
 		CapabilityGeneratedValues, CapabilityFetchEnds, CapabilityConditions, CapabilityDeclaredTypes,
+		CapabilityParameterModes,
 	}
 }
 

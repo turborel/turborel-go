@@ -37,31 +37,36 @@ func (c Column) TypeWritten() string {
 	return writtenType(c.Type)
 }
 
-// describedColumns reads the columns of a Prepared or a Description and
-// the tail after them, its declared types given to the columns: one for
-// each, or none.
+// describedColumns reads the columns of a Description and the tail after
+// them, its declared types given to the columns: one for each, or none.
 func (r *reader) describedColumns() []Column {
 	columns := r.columns()
 
 	t := tail{taken: []byte{tailDeclared}}
 	for _, ok := t.next(r); ok; _, ok = t.next(r) {
-		declared := r.declaredTypes()
-		if r.err != nil {
-			break
-		}
-
-		if len(declared) != len(columns) {
-			r.fail("its declared types are not one for each column")
-
-			break
-		}
-
-		for i := range columns {
-			columns[i].Declared = &declared[i]
-		}
+		r.declare(columns)
 	}
 
 	return columns
+}
+
+// declare reads tail 19 and gives its declared types to columns, failing
+// the connection unless there is one for each.
+func (r *reader) declare(columns []Column) {
+	declared := r.declaredTypes()
+	if r.err != nil {
+		return
+	}
+
+	if len(declared) != len(columns) {
+		r.fail("its declared types are not one for each column")
+
+		return
+	}
+
+	for i := range columns {
+		columns[i].Declared = &declared[i]
+	}
 }
 
 // declaredTypes reads tail 19's list: each its name and its type as SQL

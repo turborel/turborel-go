@@ -39,7 +39,8 @@ func oneValue(v Value) reply {
 // sessionReplies is the reply of each sample of logging in, the
 // statements' first replies, large objects and Pong.
 func sessionReplies() map[string]reply {
-	varying := Parameter{Varying: true, Type: VaryingType{Length: 1<<15 - 1}}
+	varying := Parameter{Varying: true, Type: VaryingType{Length: 1<<15 - 1}, Mode: ModeIn}
+	input := Parameter{Type: ExactType{Precision: 10}, Mode: ModeIn}
 	integer := ExactType{Precision: 10}
 	k := Column{Named: true, Name: "K", Type: integer, NotNull: true}
 	columns := []Column{k, {Type: VaryingType{Length: 5}}}
@@ -53,12 +54,13 @@ func sessionReplies() map[string]reply {
 			capabilities: []string{CapabilityPing}, server: "turborel 0.0.0 (alpha)",
 		},
 		"prepared": preparedReply{
-			statement: 1, parameters: []Parameter{varying, {Type: integer}}, columns: columns,
+			statement: 1, parameters: []Parameter{varying, input}, columns: columns,
 		},
 		"prepared-empty": preparedReply{statement: 2},
 		"prepared-declared": preparedReply{
-			statement: 1, parameters: []Parameter{varying, {Type: integer}}, columns: []Column{declared},
+			statement: 1, parameters: []Parameter{varying, input}, columns: []Column{declared},
 		},
+		"prepared-called":   calledReply(),
 		"description":       descriptionReply{columns: columns},
 		"description-empty": descriptionReply{},
 		"rows":              rowsReply{rows: []Row{{DecimalOf(1, 0), Char("a")}, {Null{}, Char("")}}},
@@ -75,6 +77,22 @@ func sessionReplies() map[string]reply {
 			Diagnostics: Diagnostics{Severity: "WARNING", Detail: "cut to 4"},
 		}},
 		"pong": pongReply{},
+	}
+}
+
+// calledReply is the Prepared of CALL S.P(?, ?) the prepared-called
+// sample holds: an input, an output column G, and tail 20 naming S.P, IN
+// of parameter 1 and OUT of parameter 2.
+func calledReply() reply {
+	integer := ExactType{Precision: 10}
+
+	return preparedReply{
+		statement:  3,
+		parameters: []Parameter{{Type: integer, Mode: ModeIn}},
+		columns:    []Column{{Named: true, Name: "G", Type: integer, NotNull: true}},
+		called: &called{procedure: QualifiedName{"S", "P"}, parameters: []Parameter{
+			{Type: integer, Mode: ModeIn, Ordinal: 1}, {Type: integer, Mode: ModeOut, Ordinal: 2},
+		}},
 	}
 }
 

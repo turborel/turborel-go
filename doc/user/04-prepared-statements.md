@@ -6,10 +6,7 @@
 `Execute` runs it with a value for each, as many times as wanted.
 `Parameters` gives the type each `?` takes, `Columns` a query's columns.
 A prepared statement stays valid across transactions, until `Deallocate`
-lets it go. A CALL takes a `?` for an OUT or INOUT parameter too: its
-`Parameters` are its inputs alone, its `Columns` one for each output, in
-the procedure's order, and `Execute` gives the outputs' values as one
-row of those columns.
+lets it go.
 
 ```go
 byID, _ := conn.Prepare(ctx, "SELECT NAME FROM STAFF WHERE ID = ?")
@@ -18,6 +15,43 @@ got, _ := conn.Execute(ctx, byID, []turborel.Value{turborel.DecimalOf(2, 0)})
 fmt.Println(got.Rows[0][0])
 // 1 NAME
 // Grace
+```
+
+A CALL takes a `?` for an OUT or INOUT parameter too. The connection
+asks for `parameter-modes`; granted it, a CALL's `Parameters` are every
+`?`, each with the `Mode` and `Ordinal` position of the procedure's
+parameter whose argument holds it, and `Procedure` names the procedure.
+`Inputs` are the `?`s `Execute` takes values for, the IN and INOUT
+ones, and `Execute` gives the OUT and INOUT ones' values back as one
+row of the CALL's `Columns`, one for each, in the procedure's order. Not
+granted it, `Parameters` are the inputs alone, each IN.
+
+```go
+// CREATE PROCEDURE PAYROLL (IN RAISE DECIMAL(9,2), OUT TOTAL DECIMAL(11,2),
+//     INOUT TAG VARCHAR(10)) READS SQL DATA
+//     SELECT SUM(SALARY + RAISE), TAG || '!' INTO TOTAL, TAG FROM STAFF
+payroll, _ := conn.Prepare(ctx, "CALL PAYROLL(?, ?, ?)")
+for _, p := range payroll.Parameters() {
+	fmt.Println(p.Mode, p.Ordinal)
+}
+got, _ := conn.Execute(ctx, payroll, []turborel.Value{turborel.DecimalOf(100, 0), turborel.Char("done")})
+fmt.Println(got.Rows[0])
+// IN 1
+// OUT 2
+// INOUT 3
+// [133200.50 done!]
+```
+
+Through `database/sql`, an OUT `?` takes an `sql.Out`, which the CALL's
+row fills, and an INOUT one an `sql.Out` with `In` set, its value sent
+and filled again.
+
+```go
+var total turborel.Decimal
+tag := "again"
+_, err := db.ExecContext(ctx, "CALL PAYROLL(?, ?, ?)", 50, sql.Out{Dest: &total}, sql.Out{Dest: &tag, In: true})
+fmt.Println(total, tag, err)
+// 133100.50 again! <nil>
 ```
 
 A column's `Type` is what its values are read by, and one type's tag
