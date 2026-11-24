@@ -199,7 +199,7 @@ func TestExportFlow(t *testing.T) {
 		f.complete("00000", false)
 		f.queryReplies(rows[0])
 		f.expect(kindQuery)
-		f.failure(-103, "2A000")
+		f.failure(-103, "42000")
 	})
 
 	ctx := context.Background()
@@ -231,7 +231,7 @@ func TestExportFlow(t *testing.T) {
 	}
 
 	_, err = c.Export(ctx, "SELECT", &csv, ExportCSV)
-	assertState(t, err, "2A000")
+	assertState(t, err, "42000")
 }
 
 // TestReadNativeRefuses refuses input that is not native rows.

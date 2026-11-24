@@ -78,7 +78,7 @@ func TestLiveDatabaseSQL(t *testing.T) {
 	}
 
 	_, err = db.ExecContext(ctx, "INSERT INTO SQL_TEST.NOPE VALUES (1)")
-	if failure, ok := errors.AsType[*Error](err); !ok || failure.SQLState != "2A000" {
+	if failure, ok := errors.AsType[*Error](err); !ok || failure.SQLState != "42000" {
 		t.Errorf("a failure gave %v", err)
 	}
 }

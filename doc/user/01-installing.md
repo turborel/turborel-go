@@ -75,7 +75,7 @@ fmt.Println(errors.As(err, &failure), failure.SQLState)
 // 2 2
 // Grace 72000.50 <nil>
 // 2
-// true 2A000
+// true 42000
 ```
 
 Here the server trusts a client of its own machine; over a network a

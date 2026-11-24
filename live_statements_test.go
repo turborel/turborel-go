@@ -61,7 +61,7 @@ func TestLiveQuery(t *testing.T) {
 	_, err := c.Query(context.Background(), "SELECT ID FROM QUERY_TEST.NOPE")
 
 	var failure *Error
-	if !errors.As(err, &failure) || failure.SQLCode != -103 || failure.SQLState != "2A000" || !failure.Placed {
+	if !errors.As(err, &failure) || failure.SQLCode != -103 || failure.SQLState != "42000" || !failure.Placed {
 		t.Errorf("a missing table gave %#v", err)
 	}
 }

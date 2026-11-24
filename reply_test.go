@@ -119,7 +119,7 @@ func TestReplyErrorFailure(t *testing.T) {
 	t.Parallel()
 
 	want := &Error{
-		SQLCode: -103, SQLState: "2A000", Message: "table ANN.NOPE is not defined",
+		SQLCode: -103, SQLState: "42000", Message: "table ANN.NOPE is not defined",
 		Rule: "ISO/IEC 9075:1992 §6.3 SR1", Position: 14, Placed: true, Active: true,
 		Diagnostics: &Diagnostics{
 			Severity: "ERROR", Detail: "d", Hint: "h", Context: "trigger S.T", Schema: "ANN",
@@ -139,7 +139,7 @@ func TestReplyErrorFailure(t *testing.T) {
 		t.Errorf("read %#v", failure)
 	}
 
-	line := "SQLCODE -103 (SQLSTATE 2A000): table ANN.NOPE is not defined [ISO/IEC 9075:1992 §6.3 SR1] (at character 14)"
+	line := "SQLCODE -103 (SQLSTATE 42000): table ANN.NOPE is not defined [ISO/IEC 9075:1992 §6.3 SR1] (at character 14)"
 	if got := want.Error(); got != line {
 		t.Errorf("Error() = %q", got)
 	}

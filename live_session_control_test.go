@@ -224,7 +224,7 @@ func TestLiveQueryMany(t *testing.T) {
 	}
 
 	if len(ran.Outcomes) != 2 || ran.Outcomes[1].Rows[0][0] != DecimalOf(2, 0) || ran.Failure == nil ||
-		ran.Failure.SQLState != "2A000" {
+		ran.Failure.SQLState != "42000" {
 		t.Errorf("ran %+v", ran)
 	}
 

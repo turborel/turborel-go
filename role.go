@@ -51,11 +51,15 @@ func (r Role) String() string {
 }
 
 // noSuchTable says whether a failure's SQLSTATE is of a table that does
-// not exist, as a server alone answers RoleQuery: of a syntax error or
-// access rule violation, of a direct SQL statement or another.
+// not exist, as a server alone answers RoleQuery: class 42, a syntax
+// error or access rule violation, as turborel-client reads it.
 func noSuchTable(sqlstate string) bool {
-	return strings.HasPrefix(sqlstate, "2A") || strings.HasPrefix(sqlstate, "42")
+	return strings.HasPrefix(sqlstate, noSuchTableClass)
 }
+
+// noSuchTableClass is the class of a failure of a table that does not
+// exist, syntax errors' and access rule violations'.
+const noSuchTableClass = "42"
 
 // roleOf gives the role the outcome of RoleQuery shows.
 func roleOf(outcome *Outcome, err error) (Role, error) {

@@ -92,7 +92,7 @@ func TestNoneKept(t *testing.T) {
 // TestRoleOfReplicas reads a server's role from REPLICAS.
 //
 // Verifies: [CLIENT Several servers] a server alone, which has no
-// REPLICAS (class 2A or 42), takes changes; of a replica, PRIMARY is
+// REPLICAS (class 42), takes changes; of a replica, PRIMARY is
 // read-write, BACKUP or UNKNOWN read-only; no row, as a session not the
 // owner's sees, is unknown; another failure is the query's.
 func TestRoleOfReplicas(t *testing.T) {
@@ -105,7 +105,6 @@ func TestRoleOfReplicas(t *testing.T) {
 		want    Role
 	}{
 		{nil, &Error{SQLState: "42000"}, RoleReadWrite},
-		{nil, &Error{SQLState: "2A000"}, RoleReadWrite},
 		{shown("PRIMARY"), nil, RoleReadWrite},
 		{shown("BACKUP "), nil, RoleReadOnly},
 		{shown("UNKNOWN"), nil, RoleReadOnly},
@@ -121,6 +120,10 @@ func TestRoleOfReplicas(t *testing.T) {
 
 	if _, err := roleOf(nil, broken("lost")); err == nil {
 		t.Error("a lost connection gave a role")
+	}
+
+	if _, err := roleOf(nil, &Error{SQLState: "2A000"}); err == nil {
+		t.Error("a failure of no class 42 gave a role")
 	}
 
 	if RoleUnknown.String() != "of a role this session cannot see" || RoleReadOnly.String() != "read-only" {

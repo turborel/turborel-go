@@ -212,7 +212,7 @@ func TestImportRefusedBefore(t *testing.T) {
 	c := openGranted(t, nil, func(f *fake) {
 		f.sqlOf()
 		f.reply(kindError, func(w *writer) {
-			w.failure(&Error{SQLCode: -103, SQLState: "2A000", Message: "no table", Position: 14, Placed: true})
+			w.failure(&Error{SQLCode: -103, SQLState: "42000", Message: "no table", Position: 14, Placed: true})
 		})
 		f.sqlOf()
 		f.refuse("42000", false, "")
@@ -226,7 +226,7 @@ func TestImportRefusedBefore(t *testing.T) {
 	}{
 		{headed(nil), "a b", "[ISO/IEC 9075:1992 §5.4] a b is not a <table name>; 0 rows committed, 0 rolled back"},
 		{headless, "T", "record 0, line 1: no; 0 rows committed, 0 rolled back"},
-		{sourceOf(nil), "T", "SQLCODE -103 (SQLSTATE 2A000): no table; 0 rows committed, 0 rolled back"},
+		{sourceOf(nil), "T", "SQLCODE -103 (SQLSTATE 42000): no table; 0 rows committed, 0 rolled back"},
 		{headed(nil), "T", "SQLCODE -201 (SQLSTATE 42000): refused; 0 rows committed, 0 rolled back"},
 	}
 

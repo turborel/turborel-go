@@ -57,7 +57,7 @@ func TestConnectionStatements(t *testing.T) {
 //
 // Verifies: [CLIENT The SQL-agent] any statement but CONNECT, SET
 // CONNECTION and DISCONNECT is none of them; one that does not parse is
-// refused, saying where (SQLSTATE 2A000).
+// refused, saying where (SQLSTATE 42000).
 func TestConnectionStatementsRefused(t *testing.T) {
 	t.Parallel()
 
@@ -87,7 +87,7 @@ func TestConnectionStatementsRefused(t *testing.T) {
 // before connecting.
 //
 // Verifies: [CLIENT The SQL-agent] a name that is no character string
-// literal is refused (SQLSTATE 2A000); a user that is no authorization
+// literal is refused (SQLSTATE 42000); a user that is no authorization
 // identifier (28000); a connection name that is no identifier (2E000);
 // with no connection, a statement other than CONNECT has no current
 // connection (08003).
@@ -194,7 +194,7 @@ func TestAgentConnections(t *testing.T) {
 // leave the current connection's active transaction (0A001), DISCONNECT
 // to end one (25000); a name in use is refused (08002); a server that
 // cannot be reached gives 08001, one that refuses 08004; a binary string
-// literal is no name (2A000).
+// literal is no name (42000).
 func TestAgentRefusals(t *testing.T) {
 	t.Parallel()
 

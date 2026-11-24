@@ -105,3 +105,41 @@ func assertExactThroughSQL(t *testing.T, text string) {
 		t.Errorf("38 digits scanned into a float64 as %v, %v", float, err)
 	}
 }
+
+// TestLiveNumberPastLimits refuses numbers past turborel's limits.
+//
+// Verifies: [PROTOCOL Errors and notices] an exact literal of 39 digits
+// breaks a Syntax Rule, SQLCODE -103 and SQLSTATE 42000, run directly or
+// prepared; a missing table is 42000 both ways too; text of a number past
+// a type's range, cast or given as a parameter, is out of range, 22003
+// [CLIENT Running statements] [CLIENT Prepared statements].
+func TestLiveNumberPastLimits(t *testing.T) {
+	t.Parallel()
+
+	c := liveSchema(t, "LIMITS_TEST")
+	mustRun(t, c, "CREATE TABLE LIMITS_TEST.N (X NUMERIC(38,0))")
+
+	ctx := context.Background()
+	past := "1" + strings.Repeat("0", 38)
+
+	for _, sql := range []string{"VALUES " + past, "SELECT X FROM LIMITS_TEST.NOPE"} {
+		_, err := c.Query(ctx, sql)
+		assertFailure(t, err, -103, "42000", "")
+
+		_, err = c.Prepare(ctx, sql)
+		assertFailure(t, err, -103, "42000", "")
+	}
+
+	for _, sql := range []string{"VALUES CAST('1e39' AS NUMERIC(38,0))", "VALUES CAST('1e400' AS DOUBLE PRECISION)"} {
+		_, err := c.Query(ctx, sql)
+		assertState(t, err, "22003")
+	}
+
+	insert, err := c.Prepare(ctx, "INSERT INTO LIMITS_TEST.N VALUES (CAST(? AS NUMERIC(38,0)))")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = c.Execute(ctx, insert, []Value{Char("1e39")})
+	assertState(t, err, "22003")
+}

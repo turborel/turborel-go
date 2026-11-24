@@ -377,7 +377,7 @@ func TestEndsConnection(t *testing.T) {
 		{SQLCode: -919, SQLState: "08003"}: false,
 		{SQLCode: -919, SQLState: "28000"}: true,
 		{SQLCode: -104, SQLState: "28000"}: false,
-		{SQLCode: -103, SQLState: "2A000"}: false,
+		{SQLCode: -103, SQLState: "42000"}: false,
 	}
 	for failure, want := range cases {
 		if endsConnection(failure) != want {

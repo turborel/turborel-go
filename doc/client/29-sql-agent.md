@@ -53,7 +53,7 @@ if the current one was. `Terminate` ends every one left.
 | 08003 | SQLCODE -919: no such connection, or none current |
 | 08001 | SQLCODE -919: the connector could not reach the server |
 | 08004 | SQLCODE -919: the server refused the connection |
-| 2A000 | SQLCODE -101, -102 or -103: a connection statement that does not parse, or names by a literal that is no character string |
+| 42000 | SQLCODE -101, -102 or -103: a connection statement that does not parse, or names by a literal that is no character string |
 
 A connection that fails to end is a warning: DISCONNECT completes with
 SQLSTATE 01002.

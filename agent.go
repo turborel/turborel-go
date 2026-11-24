@@ -23,7 +23,7 @@ const (
 	sqlstateMultipleServerTxn       = "0A001"
 	sqlstateInvalidConnectionName   = "2E000"
 	sqlstateInvalidTransactionState = "25000"
-	sqlstateSyntax                  = "2A000"
+	sqlstateSyntax                  = "42000"
 )
 
 // The SQLCODEs of an agent's failures, as turborel's codes give them.

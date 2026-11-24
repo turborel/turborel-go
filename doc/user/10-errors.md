@@ -15,7 +15,7 @@ var failure *turborel.Error
 if errors.As(err, &failure) {
 	fmt.Println(failure.SQLCode, failure.SQLState, failure.Message, failure.Position)
 }
-// -103 2A000 table ANN.NOPE is not defined 14
+// -103 42000 table ANN.NOPE is not defined 14
 ```
 
 ## Diagnostics
