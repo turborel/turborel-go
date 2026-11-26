@@ -14,6 +14,7 @@ const CopyChunkBytes = 256 * 1024
 
 func (c *Conn) CopyIn(ctx context.Context, table string, columns []string) (*Copy, error)
 func (k *Copy) Send(row Row) error
+func (k *Copy) SendText(row Row) error
 func (k *Copy) Finish() (uint64, error)
 func (k *Copy) Abandon() error
 func (c *Conn) CopyRows(ctx context.Context, table string, columns []string, rows iter.Seq[Row]) (uint64, error)
@@ -83,17 +84,25 @@ func ReadNative(in io.Reader) ([]Column, []Row, error)
 granted. `Send` holds rows until about `CopyChunkBytes` wait, then sends
 them in one CopyData; `Finish` sends the rest and CopyEnd, whose
 Complete counts the rows inserted; `Abandon` sends CopyEnd abandoning
-the copy, and of a copy ended does nothing. Until CopyEnd the connection
-sends only CopyData, CopyEnd and Ping; any other request first abandons
-the copy.
+the copy, and of a copy ended does nothing. `SendText` sends a row of
+text and nulls, as a file's record is: with `columns` granted, which
+connecting asks for, it holds such rows by column and sends them in one
+CopyColumns, each cell's text with a bit for each null and where each
+cell ends; else as `Send` does. The server takes each cell as the
+character string of its text either way, so a cell too long for its
+column fails `Finish`, never cut. Rows go in the order given, a copy
+mixing the two freely; a row of another count of columns than those
+held goes by CopyData. Any value but `Char` or `Null` is refused, TB910.
+Until CopyEnd the connection sends only CopyData, CopyColumns, CopyEnd
+and Ping; any other request first abandons the copy.
 
 `Import` prepares `INSERT INTO table (columns) VALUES (?, ...)`, its
 columns the source's headings, each read as an identifier if it is one,
 or else the table's, as a prepared `SELECT *` describes them; the
 table's name is read as SQL reads a table name and each part written
 delimited. A string for a character string column is assigned to its
-type as INSERT assigns. Rows go a batch to a copy, which commits as it
-ends, where copy is granted, `Skip` is false and no column is a large
+type as INSERT assigns. Rows go a batch to a copy, by `SendText` where
+every field is text or null, which commits as it ends, where copy is granted, `Skip` is false and no column is a large
 object's; else a row to an Execute, a COMMIT after each batch, a field
 longer than `LOBInlineOctets` for a CLOB or BLOB column sent by
 `CreateLOB`. A failing row is skipped only if it alone was undone and
@@ -116,7 +125,7 @@ a Complete.
 |---|---|
 | 23000, 22001, ... | A row a copy refuses, at `Finish`: its Diagnostics' detail names the row, as `row 7 of the copy` |
 | 08006 | SQLCODE -919: copy not granted; an export of no query, or whose write fails; input that is not native rows |
-| TB910 | SQLCODE -910: a row sent to a copy ended, or a copy finished twice; a delimiter that is not one ASCII character other than a quote or a line break |
+| TB910 | SQLCODE -910: a row sent to a copy ended, or a copy finished twice; `SendText` of a value not text or null; a delimiter that is not one ASCII character other than a quote or a line break |
 
 An import's failure is an `*ImportError`: where its record began, if
 `Placed`; its `Cause`, the source's text or SQL's `*Error`, its position
@@ -132,7 +141,7 @@ The examples of [Copying, Importing and Exporting](../user/07-copying.md).
 
 ## STANDARD
 
-[PROTOCOL CopyIn 'I'], [PROTOCOL CopyData 'J'] and [PROTOCOL CopyEnd 'N'] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Copying and exporting] and [CLIENT Importing] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md); RFC 4180.
+[PROTOCOL CopyIn 'I'], [PROTOCOL CopyData 'J'], [PROTOCOL CopyColumns 'O'] and [PROTOCOL CopyEnd 'N'] of [The Native Protocol](https://github.com/turborel/turborel/blob/main/doc/client/05-protocol.md); [CLIENT Copying and exporting] and [CLIENT Importing] of [The Client Library](https://github.com/turborel/turborel/blob/main/doc/client/02-library.md); RFC 4180.
 
 ## SEE ALSO
 

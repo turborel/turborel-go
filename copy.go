@@ -4,7 +4,7 @@ package turborel
 // with no round trip but the copy's end. CopyIn begins one, naming the
 // table and its columns [PROTOCOL CopyIn 'I']; Send sends rows, in
 // messages of about CopyChunkBytes, each with no reply [PROTOCOL CopyData
-// 'J']; Finish ends it, its reply the rows inserted, or the copy's
+// 'J'], or, of text, by column [PROTOCOL CopyColumns 'O']; Finish ends it, its reply the rows inserted, or the copy's
 // failure, every row of it undone [PROTOCOL CopyEnd 'N']. The server
 // assigns each value to its column as INSERT does, so a string too long
 // for its column is refused, not cut; a copy is all or nothing, within
@@ -32,7 +32,12 @@ type Copy struct {
 	// count.
 	rows  writer
 	count uint32
-	ended bool
+	// lanes are the rows waiting to be sent by column, textRows their
+	// count, and textBytes about their bytes.
+	lanes     []lane
+	textRows  uint32
+	textBytes int
+	ended     bool
 }
 
 // CopyIn begins a copy into table, as SQL names it, of columns, or every
@@ -84,11 +89,15 @@ func (k *Copy) Send(row Row) error {
 		return misused("the copy has ended")
 	}
 
+	if err := k.flushText(); err != nil {
+		return err
+	}
+
 	encodeValues(&k.rows, row)
 	k.count++
 
 	if len(k.rows.buf) >= CopyChunkBytes {
-		return k.flush()
+		return k.flushRows()
 	}
 
 	return nil
@@ -124,8 +133,17 @@ func (k *Copy) Abandon() error {
 	return err
 }
 
-// flush sends the rows waiting.
+// flush sends the rows waiting, by row or by column.
 func (k *Copy) flush() error {
+	if err := k.flushText(); err != nil {
+		return err
+	}
+
+	return k.flushRows()
+}
+
+// flushRows sends the rows waiting by row.
+func (k *Copy) flushRows() error {
 	if k.count == 0 {
 		return nil
 	}
@@ -159,7 +177,7 @@ func (k *Copy) end(abandon bool) (uint64, error) {
 // its rows, its end, or Ping.
 func copyRequest(req request) bool {
 	switch req.(type) {
-	case copyDataRequest, copyEndRequest, pingRequest:
+	case copyDataRequest, copyColumnsRequest, copyEndRequest, pingRequest:
 		return true
 	default:
 		return false

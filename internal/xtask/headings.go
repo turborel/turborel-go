@@ -2,7 +2,7 @@ package main
 
 // The headings a test or a comment may cite (RULES.md D6, R-TRACE-1,
 // R-TRACE-2), every heading of the three documents, their titles among
-// them, as Turborel's main branch has them at commit 5863fe65. A citation of a
+// them, as Turborel's main branch has them at commit 45cb0d7f. A citation of a
 // heading not listed fails `verify`, so none is guessed; a change to
 // the spec's headings changes these lists in the same commit.
 
@@ -38,6 +38,7 @@ Reset 'W'
 ChangeUser 'U'
 CopyIn 'I'
 CopyData 'J'
+CopyColumns 'O'
 CopyEnd 'N'
 Debug 'V'
 Replies

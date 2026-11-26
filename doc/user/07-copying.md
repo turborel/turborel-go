@@ -13,7 +13,11 @@ naming the row. `Abandon` gives a copy up, every row undone; a copy left
 unfinished is abandoned as the connection's next other request is sent.
 Until a copy ends, the connection sends only its rows, its end and
 `Ping`. Under autocommit a copy is its own transaction. `CopyRows`
-copies the rows an iterator gives.
+copies the rows an iterator gives. `SendText` sends a row of text and
+nulls, as a file's record is, by column where the server grants
+`columns`, which connecting asks for, the server taking each cell as
+the character string of its text, as it does a row `Send` sends; it is
+how an import copies.
 
 ```go
 rows := []turborel.Row{

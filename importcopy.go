@@ -138,7 +138,7 @@ func (r *copyRun) copied(
 	defer func() { _ = k.Abandon() }() // A copy the import stopped within is abandoned.
 
 	for at != nil {
-		if err := k.Send(values); err != nil {
+		if err := k.sendRow(values); err != nil {
 			return false, r.stop(at, sqlCause(err), len(r.batch))
 		}
 

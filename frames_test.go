@@ -120,7 +120,7 @@ func TestSampleFramesRead(t *testing.T) {
 		}
 	}
 
-	if len(samples) != 166 || sides["client"] != 47 || sides["server"] != 119 {
+	if len(samples) != 167 || sides["client"] != 48 || sides["server"] != 119 {
 		t.Errorf("%d samples, %v", len(samples), sides)
 	}
 }
@@ -349,6 +349,7 @@ func otherRequests() map[string]request {
 		"copy-data": copyDataOf([]Row{
 			{Char("1"), Null{}}, {Char("2"), Char("b")},
 		}),
+		"copy-columns":     textColumns(Row{Char("1"), Char("b")}, Row{Null{}, Char("")}),
 		"copy-end":         copyEndRequest{},
 		"copy-end-abandon": copyEndRequest{abandon: true},
 	}
@@ -370,4 +371,15 @@ func debugRequests() map[string]request {
 		"debug-interrupt":   debugRequest{what: debugInterrupt},
 		"debug-stack":       debugRequest{what: debugStack},
 	}
+}
+
+// textColumns gives the CopyColumns a copy granted `columns` sends of
+// rows, given by SendText.
+func textColumns(rows ...Row) request {
+	k := &Copy{conn: &Conn{granted: granted{CapabilityColumns: true}}}
+	for _, row := range rows {
+		k.addText(row)
+	}
+
+	return copyColumnsRequest{rows: k.textRows, lanes: k.lanes}
 }
